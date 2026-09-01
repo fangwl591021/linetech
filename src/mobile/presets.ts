@@ -41,63 +41,76 @@ function safeText(value: string, fallback: string, max: number) {
   return escapeXml(normalized.slice(0, max));
 }
 
+/**
+ * 大・6格：畫面內容嚴格依照 3x2 官方熱區切分。
+ * 不再使用額外的上方品牌 BAR，避免視覺區塊與 A~F 點擊熱區錯位。
+ */
 function largeSix(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
   const safeTitle = safeText(title, '我的品牌', 16);
   const safeLabels = labels.map(label => safeText(label, '未命名', 10));
+  const cellW = 400;
+  const cellH = 404.5;
+
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
   <defs>
-    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${primary}"/>
-      <stop offset="1" stop-color="${secondary}"/>
-    </linearGradient>
-    <filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.18"/></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.12"/></filter>
   </defs>
   <rect width="1200" height="809" fill="${secondary}"/>
-  <rect width="1200" height="185" fill="url(#hero)"/>
-  <circle cx="1010" cy="70" r="130" fill="${accent}" opacity="0.20"/>
-  <circle cx="1090" cy="135" r="92" fill="#fff" opacity="0.08"/>
-  <text x="68" y="84" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="#fff">${safeTitle}</text>
-  <text x="68" y="132" font-family="Arial, sans-serif" font-size="22" fill="#fff" opacity="0.9">LINE 官方帳號快速入口</text>
   ${safeLabels.map((label, index) => {
     const col = index % 3;
     const row = Math.floor(index / 3);
-    const x = col * 400;
-    const y = 185 + row * 312;
-    const cx = x + 200;
-    const cy = y + 156;
+    const x = col * cellW;
+    const y = row * cellH;
+    const cx = x + cellW / 2;
+    const cy = y + cellH / 2;
+    const brand = index === 0
+      ? `<text x="${x + 28}" y="${y + 42}" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="${primary}">${safeTitle}</text>`
+      : '';
     return `
-      <rect x="${x + 7}" y="${y + 7}" width="386" height="298" rx="16" fill="#fff" filter="url(#shadow)"/>
-      <circle cx="${cx}" cy="${cy - 34}" r="38" fill="${accent}" opacity="0.18"/>
-      <text x="${cx}" y="${cy - 22}" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="${primary}">${index + 1}</text>
-      <text x="${cx}" y="${cy + 45}" text-anchor="middle" font-family="Arial, sans-serif" font-size="31" font-weight="700" fill="#283033">${label}</text>`;
+      <rect x="${x + 7}" y="${y + 7}" width="386" height="390.5" rx="18" fill="#fff" stroke="${accent}" stroke-width="2" filter="url(#shadow)"/>
+      ${brand}
+      <circle cx="${cx}" cy="${cy - 42}" r="42" fill="${accent}" opacity="0.18"/>
+      <circle cx="${cx}" cy="${cy - 42}" r="15" fill="${primary}" opacity="0.92"/>
+      <text x="${cx}" y="${cy + 52}" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#283033">${label}</text>
+      <text x="${cx}" y="${cy + 86}" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#7b8388">點擊查看</text>`;
   }).join('')}
 </svg>`);
 }
 
+/**
+ * 大・4格：畫面內容嚴格依照 2x2 官方熱區切分。
+ * 品牌識別只放在 A 區內，不額外占用畫布高度。
+ */
 function largeFour(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
   const safeTitle = safeText(title, '我的品牌', 16);
   const safeLabels = labels.map(label => safeText(label, '未命名', 10));
+  const cellW = 600;
+  const cellH = 404.5;
+
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
+  <defs>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.10"/></filter>
+  </defs>
   <rect width="1200" height="809" fill="${secondary}"/>
-  <rect width="1200" height="168" fill="${primary}"/>
-  <path d="M0 168 L1200 90 L1200 168 Z" fill="${accent}" opacity="0.32"/>
-  <text x="62" y="82" font-family="Arial, sans-serif" font-size="45" font-weight="700" fill="#fff">${safeTitle}</text>
-  <text x="62" y="125" font-family="Arial, sans-serif" font-size="21" fill="#fff" opacity="0.9">專業服務，一鍵找到</text>
   ${safeLabels.map((label, index) => {
     const col = index % 2;
     const row = Math.floor(index / 2);
-    const x = col * 600;
-    const y = 168 + row * 320.5;
+    const x = col * cellW;
+    const y = row * cellH;
+    const brand = index === 0
+      ? `<text x="${x + 38}" y="${y + 48}" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="${primary}">${safeTitle}</text>`
+      : '';
     return `
-      <rect x="${x + 12}" y="${y + 12}" width="576" height="296" rx="18" fill="#fff" stroke="${accent}" stroke-width="2"/>
-      <rect x="${x + 45}" y="${y + 72}" width="76" height="76" rx="20" fill="${accent}" opacity="0.20"/>
-      <text x="${x + 83}" y="${y + 122}" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="${primary}">${index + 1}</text>
-      <text x="${x + 160}" y="${y + 120}" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#252b2f">${label}</text>
-      <text x="${x + 160}" y="${y + 164}" font-family="Arial, sans-serif" font-size="19" fill="#7b8388">立即查看服務內容</text>`;
+      <rect x="${x + 10}" y="${y + 10}" width="580" height="384.5" rx="20" fill="#fff" stroke="${accent}" stroke-width="2" filter="url(#shadow)"/>
+      ${brand}
+      <rect x="${x + 54}" y="${y + 122}" width="82" height="82" rx="23" fill="${accent}" opacity="0.20"/>
+      <circle cx="${x + 95}" cy="${y + 163}" r="15" fill="${primary}" opacity="0.92"/>
+      <text x="${x + 166}" y="${y + 160}" font-family="Arial, sans-serif" font-size="35" font-weight="700" fill="#252b2f">${label}</text>
+      <text x="${x + 166}" y="${y + 203}" font-family="Arial, sans-serif" font-size="19" fill="#7b8388">立即查看服務內容</text>`;
   }).join('')}
 </svg>`);
 }
