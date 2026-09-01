@@ -25,6 +25,8 @@ import {
 import { templates } from '../domain/templates';
 import type { RichMenuTemplate } from '../domain/types';
 import { presetIndustries, richMenuPresets } from './presets';
+import { PresetEditor } from './PresetEditor';
+import type { PresetEditorResult } from './PresetEditor';
 
 type MobilePage = 'home' | 'intro' | 'step1';
 type SizeTab = 'compact' | 'large';
@@ -79,11 +81,13 @@ export function MobileRichMenuSimulator() {
   const [presetOpen, setPresetOpen] = useState(false);
   const [presetIndustry, setPresetIndustry] = useState('全部');
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [sizeTab, setSizeTab] = useState<SizeTab>('compact');
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
   const [imageDataUrl, setImageDataUrl] = useState('');
   const [imageName, setImageName] = useState('');
+  const [menuLabels, setMenuLabels] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -95,6 +99,11 @@ export function MobileRichMenuSimulator() {
   const selectedPreset = useMemo(
     () => richMenuPresets.find(item => item.id === pendingPresetId) ?? null,
     [pendingPresetId]
+  );
+
+  const editingPreset = useMemo(
+    () => richMenuPresets.find(item => item.id === editingPresetId) ?? null,
+    [editingPresetId]
   );
 
   const visiblePresets = useMemo(
@@ -117,6 +126,7 @@ export function MobileRichMenuSimulator() {
     setTemplateId(pendingTemplateId);
     setImageDataUrl('');
     setImageName('');
+    setMenuLabels([]);
     setDone(false);
     setPickerOpen(false);
   };
@@ -127,6 +137,7 @@ export function MobileRichMenuSimulator() {
     reader.onload = () => {
       setImageDataUrl(String(reader.result ?? ''));
       setImageName(file.name);
+      setMenuLabels([]);
       setDone(false);
     };
     reader.readAsDataURL(file);
@@ -134,16 +145,24 @@ export function MobileRichMenuSimulator() {
 
   const openPresetLibrary = () => {
     setPendingPresetId(null);
+    setEditingPresetId(null);
     setPresetIndustry('全部');
     setPresetOpen(true);
   };
 
-  const applyPreset = () => {
+  const openPresetEditor = () => {
     if (!selectedPreset) return;
-    setTemplateId(selectedPreset.templateId);
-    setImageDataUrl(selectedPreset.imageDataUrl);
-    setImageName(`Linetech 範本｜${selectedPreset.name}`);
+    setEditingPresetId(selectedPreset.id);
+  };
+
+  const applyEditedPreset = (result: PresetEditorResult) => {
+    if (!editingPreset) return;
+    setTemplateId(editingPreset.templateId);
+    setImageDataUrl(result.imageDataUrl);
+    setImageName(`Linetech 自訂範本｜${result.brandName}`);
+    setMenuLabels(result.labels);
     setDone(false);
+    setEditingPresetId(null);
     setPresetOpen(false);
     setPendingPresetId(null);
   };
@@ -154,10 +173,12 @@ export function MobileRichMenuSimulator() {
     setPresetOpen(false);
     setPresetIndustry('全部');
     setPendingPresetId(null);
+    setEditingPresetId(null);
     setTemplateId(null);
     setPendingTemplateId(null);
     setImageDataUrl('');
     setImageName('');
+    setMenuLabels([]);
     setDone(false);
   };
 
@@ -262,8 +283,9 @@ export function MobileRichMenuSimulator() {
                   <li>圖片尺寸（小）：2500px × 843px</li>
                 </ul>
                 <button className="mobile-preset-btn" onClick={openPresetLibrary}>選擇預設圖片</button>
-                <div className="linetech-extension-note">Linetech 擴充：可直接選用原創產業範本，版型會同步套用。</div>
+                <div className="linetech-extension-note">Linetech 擴充：選原創範本後，可修改品牌名稱、品牌色與每一格文字，再套用到 LINE 圖文選單。</div>
                 {imageName && <div className="mobile-file-status">已選擇：{imageName}</div>}
+                {menuLabels.length > 0 && <div className="linetech-label-summary">選單文字：{menuLabels.join('・')}</div>}
               </div>
               <div className="mobile-next-area">
                 <button disabled={!canNext} onClick={() => setDone(true)}>下一步</button>
@@ -301,7 +323,7 @@ export function MobileRichMenuSimulator() {
                   <div><strong>Linetech 範本庫</strong><span>原創 LINE Rich Menu 圖庫</span></div>
                   <button onClick={() => setPresetOpen(false)}><X size={25} /></button>
                 </div>
-                <div className="linetech-library-banner">此區為 Linetech 教學擴充功能，非 LINE 官方內建圖庫。</div>
+                <div className="linetech-library-banner">此區為 Linetech 教學擴充功能，非 LINE 官方內建圖庫。範本為原創可編輯設計。</div>
                 <div className="linetech-library-filters">
                   {presetIndustries.map(industry => (
                     <button key={industry} className={presetIndustry === industry ? 'active' : ''} onClick={() => { setPresetIndustry(industry); setPendingPresetId(null); }}>{industry}</button>
@@ -322,11 +344,20 @@ export function MobileRichMenuSimulator() {
                   ))}
                 </div>
                 <div className="linetech-library-actions">
-                  <button className="apply" disabled={!selectedPreset} onClick={applyPreset}>套用範本</button>
+                  <button className="apply" disabled={!selectedPreset} onClick={openPresetEditor}>編輯並套用</button>
                   <button className="cancel" onClick={() => setPresetOpen(false)}>取消</button>
                 </div>
               </div>
             </div>
+          )}
+
+          {editingPreset && (
+            <PresetEditor
+              key={editingPreset.id}
+              preset={editingPreset}
+              onBack={() => setEditingPresetId(null)}
+              onApply={applyEditedPreset}
+            />
           )}
         </section>
 
@@ -338,12 +369,12 @@ export function MobileRichMenuSimulator() {
             <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
             <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
             <li className={page === 'step1' && !selectedTemplate ? 'active' : selectedTemplate ? 'done' : ''}><b>3</b><div><strong>選擇版型</strong><span>小 / 大版型；也可由 Linetech 範本同步套用</span></div></li>
-            <li className={page === 'step1' && selectedTemplate && !imageDataUrl ? 'active' : imageDataUrl ? 'done' : ''}><b>4</b><div><strong>上傳圖片</strong><span>或進入 Linetech 原創範本庫</span></div></li>
+            <li className={page === 'step1' && selectedTemplate && !imageDataUrl ? 'active' : imageDataUrl ? 'done' : ''}><b>4</b><div><strong>建立圖片</strong><span>上傳圖片，或從原創範本庫直接編輯</span></div></li>
             <li className={done ? 'done active' : ''}><b>5</b><div><strong>完成 Step 1</strong><span>「下一步」變為可按</span></div></li>
           </ol>
           <div className="mobile-teaching-note">
-            <strong>原創範本庫 V0.1</strong>
-            <span>目前先放入餐飲、美容、房地產、顧問、教育、零售 6 套範本；後續可擴充到 30 套並加入色系、用途、格數篩選。</span>
+            <strong>可編輯範本 V0.2</strong>
+            <span>選擇原創範本後，可即時修改品牌名稱、主色、背景色、強調色與 A～F 選單文字；套用時會同時帶入對應熱區版型。</span>
           </div>
         </aside>
       </div>
