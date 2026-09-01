@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react';
 import { Expand, List } from 'lucide-react';
 import type { ActionType, RichMenuDraft, RichMenuTemplate } from '../domain/types';
+import { templates } from '../domain/templates';
+import { DesktopPresetLibrary } from './DesktopPresetLibrary';
+import type { DesktopPresetResult } from './DesktopPresetLibrary';
 
 interface Props {
   draft: RichMenuDraft;
@@ -23,6 +26,7 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
   const fileRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState('');
   const [expanded, setExpanded] = useState<string>(template.areas[0]?.id ?? 'A');
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const patch = <K extends keyof RichMenuDraft>(key: K, value: RichMenuDraft[K]) => onChange({ ...draft, [key]: value });
 
@@ -65,6 +69,30 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
     reader.readAsDataURL(file);
   };
 
+  const applyPreset = (result: DesktopPresetResult) => {
+    const nextTemplate = templates.find(item => item.id === result.preset.templateId) ?? template;
+    const nextActions = Object.fromEntries(
+      nextTemplate.areas.map((area, index) => [
+        area.id,
+        {
+          id: area.id,
+          type: draft.actions[area.id]?.type ?? 'none',
+          value: draft.actions[area.id]?.value ?? ''
+        }
+      ])
+    );
+    setImageError('');
+    setExpanded(nextTemplate.areas[0]?.id ?? 'A');
+    onChange({
+      ...draft,
+      templateId: nextTemplate.id,
+      imageDataUrl: result.imageDataUrl,
+      imageName: `Linetech 自訂範本｜${result.brandName}`,
+      actions: nextActions
+    });
+    setLibraryOpen(false);
+  };
+
   return (
     <section className="workspace-content editor-page">
       <div className="page-title rich-title-row">
@@ -99,7 +127,14 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
 
           <div className="settings-column">
             <div className="setting-row"><span>版型</span><button className="btn outline-green" onClick={onOpenTemplate}>{draft.templateId ? '變更' : '選擇'}</button></div>
-            <div className="setting-row"><span>圖片</span><button className="btn outline-green" onClick={() => fileRef.current?.click()}>選擇</button><input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>chooseImage(e.target.files?.[0])}/>{draft.imageName && <small className="file-name">{draft.imageName}</small>}</div>
+            <div className="setting-row">
+              <span>圖片</span>
+              <button className="btn outline-green" onClick={() => fileRef.current?.click()}>上傳圖片</button>
+              <button className="btn linetech-library-btn" onClick={() => setLibraryOpen(true)}>Linetech 原創範本庫</button>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>chooseImage(e.target.files?.[0])}/>
+              {draft.imageName && <small className="file-name">{draft.imageName}</small>}
+            </div>
+            <div className="linetech-desktop-extension">Linetech 教學擴充：圖庫可修改品牌名稱、顏色及選單文字，再直接套用。</div>
             {imageError && <div className="error-box">{imageError}</div>}
             <div className="action-head"><span>動作</span><div><button className="icon-btn"><List size={17}/></button><button className="icon-btn active"><Expand size={17}/></button></div></div>
             <div className="action-list">
@@ -129,6 +164,8 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
 
       <div className="bottom-actions"><button className="btn secondary" onClick={onSave}>儲存草稿</button><button className="btn primary" onClick={onSave}>儲存</button></div>
       <button className="back-list" onClick={onBack}>‹ 返回一覽</button>
+
+      <DesktopPresetLibrary open={libraryOpen} onClose={() => setLibraryOpen(false)} onApply={applyPreset} />
     </section>
   );
 }
