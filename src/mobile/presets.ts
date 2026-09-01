@@ -20,15 +20,16 @@ export interface RichMenuPreset {
 }
 
 const toDataUrl = (svg: string) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+const XML_ENTITIES: Record<string, string> = {
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&apos;'
+};
 
 function escapeXml(value: string) {
-  return value.replace(/[<>&"']/g, char => ({
-    '<': '&lt;',
-    '>': '&gt;',
-    '&': '&amp;',
-    '"': '&quot;',
-    "'": '&apos;'
-  }[char] ?? char));
+  return value.replace(/[<>&"']/g, char => XML_ENTITIES[char] ?? char);
 }
 
 function safeColor(value: string, fallback: string) {
