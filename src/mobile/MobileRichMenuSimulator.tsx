@@ -24,22 +24,10 @@ import {
 } from 'lucide-react';
 import { templates } from '../domain/templates';
 import type { RichMenuTemplate } from '../domain/types';
+import { presetIndustries, richMenuPresets } from './presets';
 
 type MobilePage = 'home' | 'intro' | 'step1';
 type SizeTab = 'compact' | 'large';
-
-const PRESET_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="405" viewBox="0 0 1200 405">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0acb62"/>
-      <stop offset="1" stop-color="#0089c7"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="405" fill="url(#g)"/>
-  <text x="600" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="62" font-weight="700" fill="white">LINE Rich Menu</text>
-  <text x="600" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="white">教學用預設圖片</text>
-</svg>`)} `;
 
 const homeItems = [
   { label: '群發訊息', icon: RadioTower },
@@ -88,6 +76,9 @@ function MobileHeader({ title, onBack }: { title: string; onBack?: () => void })
 export function MobileRichMenuSimulator() {
   const [page, setPage] = useState<MobilePage>('home');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [presetOpen, setPresetOpen] = useState(false);
+  const [presetIndustry, setPresetIndustry] = useState('全部');
+  const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [sizeTab, setSizeTab] = useState<SizeTab>('compact');
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
@@ -99,6 +90,16 @@ export function MobileRichMenuSimulator() {
   const selectedTemplate = useMemo(
     () => templates.find(t => t.id === templateId) ?? null,
     [templateId]
+  );
+
+  const selectedPreset = useMemo(
+    () => richMenuPresets.find(item => item.id === pendingPresetId) ?? null,
+    [pendingPresetId]
+  );
+
+  const visiblePresets = useMemo(
+    () => richMenuPresets.filter(item => presetIndustry === '全部' || item.industry === presetIndustry),
+    [presetIndustry]
   );
 
   const pickerTemplates = templates.filter(t => t.size === sizeTab);
@@ -131,16 +132,28 @@ export function MobileRichMenuSimulator() {
     reader.readAsDataURL(file);
   };
 
-  const choosePreset = () => {
-    if (!selectedTemplate) return;
-    setImageDataUrl(PRESET_IMAGE);
-    setImageName('教學用預設圖片');
+  const openPresetLibrary = () => {
+    setPendingPresetId(null);
+    setPresetIndustry('全部');
+    setPresetOpen(true);
+  };
+
+  const applyPreset = () => {
+    if (!selectedPreset) return;
+    setTemplateId(selectedPreset.templateId);
+    setImageDataUrl(selectedPreset.imageDataUrl);
+    setImageName(`Linetech 範本｜${selectedPreset.name}`);
     setDone(false);
+    setPresetOpen(false);
+    setPendingPresetId(null);
   };
 
   const reset = () => {
     setPage('home');
     setPickerOpen(false);
+    setPresetOpen(false);
+    setPresetIndustry('全部');
+    setPendingPresetId(null);
     setTemplateId(null);
     setPendingTemplateId(null);
     setImageDataUrl('');
@@ -248,7 +261,8 @@ export function MobileRichMenuSimulator() {
                   <li>圖片尺寸（大）：2500px × 1686px</li>
                   <li>圖片尺寸（小）：2500px × 843px</li>
                 </ul>
-                <button className="mobile-preset-btn" disabled={!canUpload} onClick={choosePreset}>選擇預設圖片</button>
+                <button className="mobile-preset-btn" onClick={openPresetLibrary}>選擇預設圖片</button>
+                <div className="linetech-extension-note">Linetech 擴充：可直接選用原創產業範本，版型會同步套用。</div>
                 {imageName && <div className="mobile-file-status">已選擇：{imageName}</div>}
               </div>
               <div className="mobile-next-area">
@@ -279,6 +293,41 @@ export function MobileRichMenuSimulator() {
               </div>
             </div>
           )}
+
+          {presetOpen && (
+            <div className="mobile-picker-overlay linetech-library-overlay">
+              <div className="linetech-library-sheet">
+                <div className="linetech-library-head">
+                  <div><strong>Linetech 範本庫</strong><span>原創 LINE Rich Menu 圖庫</span></div>
+                  <button onClick={() => setPresetOpen(false)}><X size={25} /></button>
+                </div>
+                <div className="linetech-library-banner">此區為 Linetech 教學擴充功能，非 LINE 官方內建圖庫。</div>
+                <div className="linetech-library-filters">
+                  {presetIndustries.map(industry => (
+                    <button key={industry} className={presetIndustry === industry ? 'active' : ''} onClick={() => { setPresetIndustry(industry); setPendingPresetId(null); }}>{industry}</button>
+                  ))}
+                </div>
+                <div className="linetech-preset-grid">
+                  {visiblePresets.map(preset => (
+                    <button key={preset.id} className={`linetech-preset-card ${pendingPresetId === preset.id ? 'selected' : ''}`} onClick={() => setPendingPresetId(preset.id)}>
+                      <div className="linetech-preset-image" style={{ aspectRatio: preset.size === 'large' ? 2500 / 1686 : 2500 / 843 }}>
+                        <img src={preset.imageDataUrl} alt={preset.name} />
+                      </div>
+                      <div className="linetech-preset-copy">
+                        <strong>{preset.name}</strong>
+                        <span>{preset.industry}・{preset.purpose}</span>
+                        <small>{preset.style}｜{preset.size === 'large' ? '大版型' : '小版型'}</small>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="linetech-library-actions">
+                  <button className="apply" disabled={!selectedPreset} onClick={applyPreset}>套用範本</button>
+                  <button className="cancel" onClick={() => setPresetOpen(false)}>取消</button>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         <aside className="mobile-teaching-panel">
@@ -288,13 +337,13 @@ export function MobileRichMenuSimulator() {
           <ol>
             <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
             <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
-            <li className={page === 'step1' && !selectedTemplate ? 'active' : selectedTemplate ? 'done' : ''}><b>3</b><div><strong>選擇版型</strong><span>小 / 大版型</span></div></li>
-            <li className={page === 'step1' && selectedTemplate && !imageDataUrl ? 'active' : imageDataUrl ? 'done' : ''}><b>4</b><div><strong>上傳圖片</strong><span>或使用預設圖片</span></div></li>
+            <li className={page === 'step1' && !selectedTemplate ? 'active' : selectedTemplate ? 'done' : ''}><b>3</b><div><strong>選擇版型</strong><span>小 / 大版型；也可由 Linetech 範本同步套用</span></div></li>
+            <li className={page === 'step1' && selectedTemplate && !imageDataUrl ? 'active' : imageDataUrl ? 'done' : ''}><b>4</b><div><strong>上傳圖片</strong><span>或進入 Linetech 原創範本庫</span></div></li>
             <li className={done ? 'done active' : ''}><b>5</b><div><strong>完成 Step 1</strong><span>「下一步」變為可按</span></div></li>
           </ol>
           <div className="mobile-teaching-note">
-            <strong>本階段範圍</strong>
-            <span>先做到「內容設定（1/3）」；Action 與後續 2/3、3/3 下一階段再接。</span>
+            <strong>原創範本庫 V0.1</strong>
+            <span>目前先放入餐飲、美容、房地產、顧問、教育、零售 6 套範本；後續可擴充到 30 套並加入色系、用途、格數篩選。</span>
           </div>
         </aside>
       </div>
