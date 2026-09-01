@@ -4,6 +4,7 @@ import Root from './Root';
 import './styles.css';
 import './mobile.css';
 import './mobile-library.css';
+import './desktop-library.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
