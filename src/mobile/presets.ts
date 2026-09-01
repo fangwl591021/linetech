@@ -1,5 +1,11 @@
 export type PresetSize = 'large' | 'compact';
 
+export interface PresetTheme {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
 export interface RichMenuPreset {
   id: string;
   name: string;
@@ -9,13 +15,35 @@ export interface RichMenuPreset {
   size: PresetSize;
   templateId: string;
   labels: string[];
+  theme: PresetTheme;
   imageDataUrl: string;
 }
 
 const toDataUrl = (svg: string) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 
+function escapeXml(value: string) {
+  return value.replace(/[<>&"']/g, char => ({
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+    '"': '&quot;',
+    "'": '&apos;'
+  }[char] ?? char));
+}
+
+function safeColor(value: string, fallback: string) {
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback;
+}
+
+function safeText(value: string, fallback: string, max: number) {
+  const normalized = value.trim() || fallback;
+  return escapeXml(normalized.slice(0, max));
+}
+
 function largeSix(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
+  const safeTitle = safeText(title, '我的品牌', 16);
+  const safeLabels = labels.map(label => safeText(label, '未命名', 10));
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
   <defs>
@@ -29,9 +57,9 @@ function largeSix(colors: [string, string, string], title: string, labels: strin
   <rect width="1200" height="185" fill="url(#hero)"/>
   <circle cx="1010" cy="70" r="130" fill="${accent}" opacity="0.20"/>
   <circle cx="1090" cy="135" r="92" fill="#fff" opacity="0.08"/>
-  <text x="68" y="84" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="#fff">${title}</text>
+  <text x="68" y="84" font-family="Arial, sans-serif" font-size="46" font-weight="700" fill="#fff">${safeTitle}</text>
   <text x="68" y="132" font-family="Arial, sans-serif" font-size="22" fill="#fff" opacity="0.9">LINE 官方帳號快速入口</text>
-  ${labels.map((label, index) => {
+  ${safeLabels.map((label, index) => {
     const col = index % 3;
     const row = Math.floor(index / 3);
     const x = col * 400;
@@ -49,14 +77,16 @@ function largeSix(colors: [string, string, string], title: string, labels: strin
 
 function largeFour(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
+  const safeTitle = safeText(title, '我的品牌', 16);
+  const safeLabels = labels.map(label => safeText(label, '未命名', 10));
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
   <rect width="1200" height="809" fill="${secondary}"/>
   <rect width="1200" height="168" fill="${primary}"/>
   <path d="M0 168 L1200 90 L1200 168 Z" fill="${accent}" opacity="0.32"/>
-  <text x="62" y="82" font-family="Arial, sans-serif" font-size="45" font-weight="700" fill="#fff">${title}</text>
+  <text x="62" y="82" font-family="Arial, sans-serif" font-size="45" font-weight="700" fill="#fff">${safeTitle}</text>
   <text x="62" y="125" font-family="Arial, sans-serif" font-size="21" fill="#fff" opacity="0.9">專業服務，一鍵找到</text>
-  ${labels.map((label, index) => {
+  ${safeLabels.map((label, index) => {
     const col = index % 2;
     const row = Math.floor(index / 2);
     const x = col * 600;
@@ -73,18 +103,20 @@ function largeFour(colors: [string, string, string], title: string, labels: stri
 
 function compactThree(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
+  const safeTitle = safeText(title, '我的品牌', 14);
+  const safeLabels = labels.map(label => safeText(label, '未命名', 9));
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="405" viewBox="0 0 1200 405">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${secondary}"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
   <rect width="1200" height="405" fill="url(#bg)"/>
-  ${labels.map((label, index) => {
+  ${safeLabels.map((label, index) => {
     const x = index * 400;
     return `
       <rect x="${x + 8}" y="8" width="384" height="389" rx="18" fill="#fff" stroke="${accent}" stroke-width="2"/>
       <circle cx="${x + 200}" cy="135" r="54" fill="${primary}" opacity="0.13"/>
       <text x="${x + 200}" y="151" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="${primary}">${index + 1}</text>
       <text x="${x + 200}" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#262d31">${label}</text>
-      <text x="${x + 200}" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#7a8388">${title}</text>`;
+      <text x="${x + 200}" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#7a8388">${safeTitle}</text>`;
   }).join('')}
 </svg>`);
 }
@@ -93,33 +125,61 @@ export const richMenuPresets: RichMenuPreset[] = [
   {
     id: 'cafe-warm-01', name: '暖木咖啡', industry: '餐飲', purpose: '訂位・導購', style: '溫暖自然', size: 'large', templateId: 'large-6',
     labels: ['最新菜單', '線上訂位', '本月優惠', '門市資訊', '會員專區', '聯絡我們'],
+    theme: { primary: '#6b4b3e', secondary: '#eadfce', accent: '#c58f62' },
     imageDataUrl: largeSix(['#6b4b3e', '#eadfce', '#c58f62'], '暖木咖啡', ['最新菜單', '線上訂位', '本月優惠', '門市資訊', '會員專區', '聯絡我們'])
   },
   {
     id: 'beauty-soft-01', name: '柔光美學', industry: '美容', purpose: '預約・服務介紹', style: '柔和質感', size: 'large', templateId: 'large-6',
     labels: ['立即預約', '服務療程', '價目資訊', '作品案例', '本月優惠', '線上客服'],
+    theme: { primary: '#9b6f75', secondary: '#f3e7e4', accent: '#d9a9af' },
     imageDataUrl: largeSix(['#9b6f75', '#f3e7e4', '#d9a9af'], '柔光美學', ['立即預約', '服務療程', '價目資訊', '作品案例', '本月優惠', '線上客服'])
   },
   {
     id: 'realestate-urban-01', name: '城市房產', industry: '房地產', purpose: '名單蒐集', style: '專業穩重', size: 'large', templateId: 'large-4',
     labels: ['我要找房', '我要賣屋', '免費估價', '聯絡顧問'],
+    theme: { primary: '#17365d', secondary: '#edf2f7', accent: '#c9a45b' },
     imageDataUrl: largeFour(['#17365d', '#edf2f7', '#c9a45b'], '城市房產', ['我要找房', '我要賣屋', '免費估價', '聯絡顧問'])
   },
   {
     id: 'consulting-smart-01', name: '商務顧問', industry: '顧問', purpose: '諮詢・案例', style: '商務科技', size: 'large', templateId: 'large-4',
     labels: ['服務方案', '成功案例', '預約諮詢', '聯絡我們'],
+    theme: { primary: '#1f4c5c', secondary: '#eef5f4', accent: '#4aa69b' },
     imageDataUrl: largeFour(['#1f4c5c', '#eef5f4', '#4aa69b'], '商務顧問', ['服務方案', '成功案例', '預約諮詢', '聯絡我們'])
   },
   {
     id: 'education-bright-01', name: '好學教室', industry: '教育', purpose: '課程報名', style: '明亮活潑', size: 'compact', templateId: 'compact-3',
     labels: ['熱門課程', '立即報名', '課程公告'],
+    theme: { primary: '#3566c8', secondary: '#f4f8ff', accent: '#f0b73e' },
     imageDataUrl: compactThree(['#3566c8', '#f4f8ff', '#f0b73e'], '好學教室', ['熱門課程', '立即報名', '課程公告'])
   },
   {
     id: 'retail-clean-01', name: '好物選品', industry: '零售', purpose: '商品導購', style: '清爽簡約', size: 'compact', templateId: 'compact-3',
     labels: ['熱門商品', '會員優惠', '客服中心'],
+    theme: { primary: '#2c6f68', secondary: '#eff7f4', accent: '#78b9a8' },
     imageDataUrl: compactThree(['#2c6f68', '#eff7f4', '#78b9a8'], '好物選品', ['熱門商品', '會員優惠', '客服中心'])
   }
 ];
+
+export function renderPresetImage(
+  preset: RichMenuPreset,
+  customization?: {
+    brandName?: string;
+    labels?: string[];
+    theme?: Partial<PresetTheme>;
+  }
+) {
+  const brandName = customization?.brandName?.trim() || preset.name;
+  const labels = preset.labels.map((fallback, index) => customization?.labels?.[index]?.trim() || fallback);
+  const theme = {
+    primary: safeColor(customization?.theme?.primary ?? preset.theme.primary, preset.theme.primary),
+    secondary: safeColor(customization?.theme?.secondary ?? preset.theme.secondary, preset.theme.secondary),
+    accent: safeColor(customization?.theme?.accent ?? preset.theme.accent, preset.theme.accent)
+  };
+  const colors: [string, string, string] = [theme.primary, theme.secondary, theme.accent];
+
+  if (preset.templateId === 'large-6') return largeSix(colors, brandName, labels);
+  if (preset.templateId === 'large-4') return largeFour(colors, brandName, labels);
+  return compactThree(colors, brandName, labels);
+}
 
 export const presetIndustries = ['全部', ...Array.from(new Set(richMenuPresets.map(item => item.industry)))];
