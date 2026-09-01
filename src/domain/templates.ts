@@ -19,8 +19,8 @@ export const templates: RichMenuTemplate[] = [
     areas: [area('A',0,0,1,.5),area('B',0,.5,1/3,.5),area('C',1/3,.5,1/3,.5),area('D',2/3,.5,1/3,.5)]
   },
   {
-    id: 'large-3-side', label: '大・左1右2', size: 'large', aspectRatio: 2500 / 1686,
-    areas: [area('A',0,0,.65,1),area('B',.65,0,.35,.5),area('C',.65,.5,.35,.5)]
+    id: 'large-3-side', label: '大・左大右2', size: 'large', aspectRatio: 2500 / 1686,
+    areas: [area('A',0,0,2/3,1),area('B',2/3,0,1/3,.5),area('C',2/3,.5,1/3,.5)]
   },
   {
     id: 'large-2-horizontal', label: '大・上下2格', size: 'large', aspectRatio: 2500 / 1686,
@@ -40,11 +40,11 @@ export const templates: RichMenuTemplate[] = [
   },
   {
     id: 'compact-left', label: '小・左大右小', size: 'compact', aspectRatio: 2500 / 843,
-    areas: [area('A',0,0,.66,1),area('B',.66,0,.34,1)]
+    areas: [area('A',0,0,2/3,1),area('B',2/3,0,1/3,1)]
   },
   {
     id: 'compact-right', label: '小・左小右大', size: 'compact', aspectRatio: 2500 / 843,
-    areas: [area('A',0,0,.34,1),area('B',.34,0,.66,1)]
+    areas: [area('A',0,0,1/3,1),area('B',1/3,0,2/3,1)]
   },
   {
     id: 'compact-2', label: '小・2格', size: 'compact', aspectRatio: 2500 / 843,
