@@ -29,10 +29,25 @@ LINE Official Account Manager / App 的互動式教學模擬器。
 4. 小 / 大版型選擇滿版浮層。
 5. 選版型後顯示 A、B、C… 熱區預覽。
 6. 模擬從手機上傳 JPG / JPEG / PNG。
-7. 教學用預設圖片。
+7. 「選擇預設圖片」可開啟 Linetech 原創範本庫。
 8. 未完成版型及圖片前，「下一步」保持 disabled。
 9. 獨立教學輔助區顯示目前操作步驟。
 10. 右下角可切換「電腦版 / 手機版」教學。
+
+## Linetech 原創 Rich Menu 範本庫 V0.1
+
+此區是 Linetech 自行擴充的教學功能，不是 LINE 官方內建圖庫。第一批模板以自行產生的 SVG 圖像建立，不搬運 Canva 或其他第三方模板素材。
+
+目前包含 6 套：
+
+- 暖木咖啡｜餐飲｜大 6 格
+- 柔光美學｜美容｜大 6 格
+- 城市房產｜房地產｜大 4 格
+- 商務顧問｜顧問｜大 4 格
+- 好學教室｜教育｜小 3 格
+- 好物選品｜零售｜小 3 格
+
+套用範本時會同步套用對應 Rich Menu 版型，避免圖片視覺區塊與實際熱區錯位。
 
 ## 開發
 
@@ -59,10 +74,16 @@ npm run deploy
 ## 架構
 
 - `src/components/`：電腦版 Official Account Manager / Phone Simulator UI
-- `src/mobile/`：手機版 Official Account App / Rich Menu 流程
+- `src/mobile/`：手機版 Official Account App / Rich Menu 流程與範本資料
 - `src/domain/`：Rich Menu 資料模型與版型定義
 - `src/App.tsx`：電腦版狀態與互動模擬
 - `src/Root.tsx`：電腦版 / 手機版教學模式切換
 - `src/mobile.css`：手機版與教學輔助區樣式
+- `src/mobile-library.css`：Linetech 原創範本庫樣式
 
-下一階段：手機版「內容設定（2/3）、（3/3）」與 Action 設定，再接右側顧客 LINE 即時互動。
+## 下一階段
+
+- 手機版「內容設定（2/3）、（3/3）」與 Action 設定。
+- 範本庫擴充到 30 套。
+- 加入用途、格數、風格、色系篩選。
+- 後續加入 AI Rich Menu 產生器。
