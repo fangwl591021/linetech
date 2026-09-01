@@ -1,3 +1,5 @@
+import { templates } from '../domain/templates';
+
 export type PresetSize = 'large' | 'compact';
 
 export interface PresetTheme {
@@ -41,10 +43,6 @@ function safeText(value: string, fallback: string, max: number) {
   return escapeXml(normalized.slice(0, max));
 }
 
-/**
- * 大・6格：畫面內容嚴格依照 3x2 官方熱區切分。
- * 不再使用額外的上方品牌 BAR，避免視覺區塊與 A~F 點擊熱區錯位。
- */
 function largeSix(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
   const safeTitle = safeText(title, '我的品牌', 16);
@@ -54,9 +52,7 @@ function largeSix(colors: [string, string, string], title: string, labels: strin
 
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
-  <defs>
-    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.12"/></filter>
-  </defs>
+  <defs><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.12"/></filter></defs>
   <rect width="1200" height="809" fill="${secondary}"/>
   ${safeLabels.map((label, index) => {
     const col = index % 3;
@@ -65,9 +61,7 @@ function largeSix(colors: [string, string, string], title: string, labels: strin
     const y = row * cellH;
     const cx = x + cellW / 2;
     const cy = y + cellH / 2;
-    const brand = index === 0
-      ? `<text x="${x + 28}" y="${y + 42}" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="${primary}">${safeTitle}</text>`
-      : '';
+    const brand = index === 0 ? `<text x="${x + 28}" y="${y + 42}" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="${primary}">${safeTitle}</text>` : '';
     return `
       <rect x="${x + 7}" y="${y + 7}" width="386" height="390.5" rx="18" fill="#fff" stroke="${accent}" stroke-width="2" filter="url(#shadow)"/>
       ${brand}
@@ -79,10 +73,6 @@ function largeSix(colors: [string, string, string], title: string, labels: strin
 </svg>`);
 }
 
-/**
- * 大・4格：畫面內容嚴格依照 2x2 官方熱區切分。
- * 品牌識別只放在 A 區內，不額外占用畫布高度。
- */
 function largeFour(colors: [string, string, string], title: string, labels: string[]) {
   const [primary, secondary, accent] = colors;
   const safeTitle = safeText(title, '我的品牌', 16);
@@ -92,18 +82,14 @@ function largeFour(colors: [string, string, string], title: string, labels: stri
 
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="809" viewBox="0 0 1200 809">
-  <defs>
-    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.10"/></filter>
-  </defs>
+  <defs><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.10"/></filter></defs>
   <rect width="1200" height="809" fill="${secondary}"/>
   ${safeLabels.map((label, index) => {
     const col = index % 2;
     const row = Math.floor(index / 2);
     const x = col * cellW;
     const y = row * cellH;
-    const brand = index === 0
-      ? `<text x="${x + 38}" y="${y + 48}" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="${primary}">${safeTitle}</text>`
-      : '';
+    const brand = index === 0 ? `<text x="${x + 38}" y="${y + 48}" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="${primary}">${safeTitle}</text>` : '';
     return `
       <rect x="${x + 10}" y="${y + 10}" width="580" height="384.5" rx="20" fill="#fff" stroke="${accent}" stroke-width="2" filter="url(#shadow)"/>
       ${brand}
@@ -121,21 +107,53 @@ function compactThree(colors: [string, string, string], title: string, labels: s
   const safeLabels = labels.map(label => safeText(label, '未命名', 9));
   return toDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="405" viewBox="0 0 1200 405">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${secondary}"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
-  <rect width="1200" height="405" fill="url(#bg)"/>
+  <rect width="1200" height="405" fill="${secondary}"/>
   ${safeLabels.map((label, index) => {
     const x = index * 400;
     return `
       <rect x="${x + 8}" y="8" width="384" height="389" rx="18" fill="#fff" stroke="${accent}" stroke-width="2"/>
-      <circle cx="${x + 200}" cy="135" r="54" fill="${primary}" opacity="0.13"/>
-      <text x="${x + 200}" y="151" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="${primary}">${index + 1}</text>
-      <text x="${x + 200}" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#262d31">${label}</text>
-      <text x="${x + 200}" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#7a8388">${safeTitle}</text>`;
+      ${index === 0 ? `<text x="${x + 24}" y="42" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="${primary}">${safeTitle}</text>` : ''}
+      <circle cx="${x + 200}" cy="145" r="52" fill="${primary}" opacity="0.13"/>
+      <text x="${x + 200}" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="${primary}">${index + 1}</text>
+      <text x="${x + 200}" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#262d31">${label}</text>`;
   }).join('')}
 </svg>`);
 }
 
-export const richMenuPresets: RichMenuPreset[] = [
+function genericLayout(colors: [string, string, string], title: string, labels: string[], templateId: string) {
+  const template = templates.find(item => item.id === templateId);
+  if (!template) return '';
+  const [primary, secondary, accent] = colors;
+  const safeTitle = safeText(title, '我的品牌', 16);
+  const safeLabels = template.areas.map((_, index) => safeText(labels[index] ?? `功能${index + 1}`, `功能${index + 1}`, 10));
+  const width = 1200;
+  const height = template.size === 'large' ? 809 : 405;
+
+  return toDataUrl(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <rect width="${width}" height="${height}" fill="${secondary}"/>
+  ${template.areas.map((area, index) => {
+    const x = area.x * width;
+    const y = area.y * height;
+    const w = area.width * width;
+    const h = area.height * height;
+    const pad = Math.max(5, Math.min(12, Math.min(w, h) * 0.025));
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    const circle = Math.max(20, Math.min(46, Math.min(w, h) * 0.12));
+    const labelSize = Math.max(22, Math.min(38, w * 0.075, h * 0.14));
+    const brandSize = Math.max(17, Math.min(28, w * 0.05));
+    return `
+      <rect x="${x + pad}" y="${y + pad}" width="${Math.max(1, w - pad * 2)}" height="${Math.max(1, h - pad * 2)}" rx="${Math.min(18, pad * 1.4)}" fill="#fff" stroke="${accent}" stroke-width="2"/>
+      ${index === 0 ? `<text x="${x + pad + 18}" y="${y + pad + brandSize + 10}" font-family="Arial, sans-serif" font-size="${brandSize}" font-weight="700" fill="${primary}">${safeTitle}</text>` : ''}
+      <circle cx="${cx}" cy="${cy - circle * 0.55}" r="${circle}" fill="${accent}" opacity="0.18"/>
+      <text x="${cx}" y="${cy - circle * 0.25}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(20, circle * 0.72)}" font-weight="700" fill="${primary}">${index + 1}</text>
+      <text x="${cx}" y="${cy + circle * 1.15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${labelSize}" font-weight="700" fill="#283033">${safeLabels[index]}</text>`;
+  }).join('')}
+</svg>`);
+}
+
+const curatedPresets: RichMenuPreset[] = [
   {
     id: 'cafe-warm-01', name: '暖木咖啡', industry: '餐飲', purpose: '訂位・導購', style: '溫暖自然', size: 'large', templateId: 'large-6',
     labels: ['最新菜單', '線上訂位', '本月優惠', '門市資訊', '會員專區', '聯絡我們'],
@@ -174,6 +192,41 @@ export const richMenuPresets: RichMenuPreset[] = [
   }
 ];
 
+const baseTheme: PresetTheme = { primary: '#176b55', secondary: '#edf8f3', accent: '#59b89b' };
+const officialLayoutDefinitions = [
+  ['official-large-6', '官方版型・大6格', 'large-6', ['功能1','功能2','功能3','功能4','功能5','功能6']],
+  ['official-large-4', '官方版型・大4格', 'large-4', ['功能1','功能2','功能3','功能4']],
+  ['official-large-top4', '官方版型・上1下3', 'large-4-top', ['主打入口','功能2','功能3','功能4']],
+  ['official-large-side3', '官方版型・左大右2', 'large-3-side', ['主打入口','功能2','功能3']],
+  ['official-large-horizontal2', '官方版型・上下2格', 'large-2-horizontal', ['上方入口','下方入口']],
+  ['official-large-vertical2', '官方版型・左右2格', 'large-2-vertical', ['左側入口','右側入口']],
+  ['official-large-1', '官方版型・大單格', 'large-1', ['主要入口']],
+  ['official-compact-3', '官方版型・小3格', 'compact-3', ['功能1','功能2','功能3']],
+  ['official-compact-left', '官方版型・小左大右小', 'compact-left', ['主要入口','次要入口']],
+  ['official-compact-right', '官方版型・小左小右大', 'compact-right', ['次要入口','主要入口']],
+  ['official-compact-2', '官方版型・小2格', 'compact-2', ['功能1','功能2']],
+  ['official-compact-1', '官方版型・小單格', 'compact-1', ['主要入口']]
+] as const;
+
+const officialLayoutPresets: RichMenuPreset[] = officialLayoutDefinitions.map(([id, name, templateId, labels]) => {
+  const template = templates.find(item => item.id === templateId)!;
+  const theme = { ...baseTheme };
+  return {
+    id,
+    name,
+    industry: '官方版型',
+    purpose: '版型練習',
+    style: '基礎可編輯',
+    size: template.size,
+    templateId,
+    labels: [...labels],
+    theme,
+    imageDataUrl: genericLayout([theme.primary, theme.secondary, theme.accent], '我的品牌', [...labels], templateId)
+  };
+});
+
+export const richMenuPresets: RichMenuPreset[] = [...curatedPresets, ...officialLayoutPresets];
+
 export function renderPresetImage(
   preset: RichMenuPreset,
   customization?: {
@@ -191,9 +244,10 @@ export function renderPresetImage(
   };
   const colors: [string, string, string] = [theme.primary, theme.secondary, theme.accent];
 
-  if (preset.templateId === 'large-6') return largeSix(colors, brandName, labels);
-  if (preset.templateId === 'large-4') return largeFour(colors, brandName, labels);
-  return compactThree(colors, brandName, labels);
+  if (preset.id === 'cafe-warm-01' || preset.id === 'beauty-soft-01') return largeSix(colors, brandName, labels);
+  if (preset.id === 'realestate-urban-01' || preset.id === 'consulting-smart-01') return largeFour(colors, brandName, labels);
+  if (preset.id === 'education-bright-01' || preset.id === 'retail-clean-01') return compactThree(colors, brandName, labels);
+  return genericLayout(colors, brandName, labels, preset.templateId);
 }
 
 export const presetIndustries = ['全部', ...Array.from(new Set(richMenuPresets.map(item => item.industry)))];
