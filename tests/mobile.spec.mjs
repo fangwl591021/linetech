@@ -149,3 +149,31 @@ test('Taiwan auto reply real-screen labels and initial Default row',async({page}
   await page.getByRole('button',{name:'下一步',exact:true}).click();
   await expect(page.locator('.auto-settings [role=alert]')).toContainText('請輸入標題');
 });
+
+test('Taiwan add-friends reference cards, contextual preview and QR generation',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(7).click();
+  await expect(page.locator('.friend-growth-screen .oa-mobile-header strong')).toHaveText('增加好友人數');
+  await expect(page.locator('.friend-growth-guide')).toContainText('增加好友人數所需的3大要素');
+  await expect(page.locator('.friend-growth-section h3')).toHaveText(['店頭宣傳','線上宣傳']);
+  await expect(page.locator('.friend-growth-card strong')).toHaveText(['建立海報','建立集點卡','建立加入好友行動條碼','建立優惠券行動條碼']);
+  await expect.poll(async()=>page.locator('.friend-growth-card img').evaluateAll(imgs=>imgs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
+  await expect(page.locator('.customer-phone')).toHaveCount(0);
+  await page.locator('.friend-growth-card').nth(2).click();
+  await expect(page.locator('.friend-practice h2')).toContainText('建立加入好友行動條碼');
+  await expect(page.locator('.friend-qr-preview img')).toBeVisible();
+  await expect.poll(async()=>page.locator('.friend-qr-preview img').evaluate(x=>x.complete&&x.naturalWidth>0)).toBe(true);
+  await expect(page.locator('.friend-practice-label input')).toHaveValue('https://example.invalid/linetech/friend');
+  await page.getByRole('button',{name:'模擬加入好友',exact:true}).click();
+  await expect(page.locator('.friend-welcome-preview')).toContainText('歡迎加入好友！');
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(0).click();
+  await page.getByLabel('海報標語').fill('掃描行動條碼');
+  await expect(page.locator('.friend-qr-preview')).toContainText('掃描行動條碼');
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(1).click();
+  await expect(page.locator('.asset-editor-screen .oa-mobile-header')).toContainText('集點卡');
+  await page.locator('.asset-editor-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(3).click();
+  await expect(page.locator('.friend-practice-label select')).toBeVisible();
+  await expect(page.getByRole('button',{name:'前往建立優惠券',exact:true})).toBeVisible();
+});
