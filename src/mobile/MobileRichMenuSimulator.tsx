@@ -27,27 +27,29 @@ import type { RichMenuTemplate } from '../domain/types';
 import { presetIndustries, richMenuPresets } from './presets';
 import { PresetEditor } from './PresetEditor';
 import type { PresetEditorResult } from './PresetEditor';
+import { MobileFeaturePage } from './MobileFeaturePage';
+import type { FeatureKey } from './MobileFeaturePage';
 
-type MobilePage = 'home' | 'intro' | 'step1';
+type MobilePage = 'home' | 'intro' | 'step1' | 'feature';
 type SizeTab = 'compact' | 'large';
 
-const homeItems = [
-  { label: '群發訊息', icon: RadioTower },
-  { label: '加入好友\n的歡迎訊息', icon: MessageCircle },
-  { label: '自動回應\n訊息', icon: MousePointer2 },
-  { label: '圖文訊息', icon: MessageCircle },
-  { label: '多頁訊息', icon: ImageIcon },
-  { label: '優惠券', icon: Ticket },
-  { label: '集點卡', icon: CreditCard },
-  { label: '增加好友人數', icon: UserPlus },
-  { label: '商業簡介', icon: BriefcaseBusiness },
+const homeItems: Array<{ label: string; icon: typeof RadioTower; key: FeatureKey | 'rich-menu' }> = [
+  { label: '群發訊息', icon: RadioTower, key: 'broadcast' },
+  { label: '加入好友\n的歡迎訊息', icon: MessageCircle, key: 'welcome' },
+  { label: '自動回應\n訊息', icon: MousePointer2, key: 'autoreply' },
+  { label: '圖文訊息', icon: MessageCircle, key: 'richmessage' },
+  { label: '多頁訊息', icon: ImageIcon, key: 'multipage' },
+  { label: '優惠券', icon: Ticket, key: 'coupon' },
+  { label: '集點卡', icon: CreditCard, key: 'stampcard' },
+  { label: '增加好友人數', icon: UserPlus, key: 'addfriend' },
+  { label: '商業簡介', icon: BriefcaseBusiness, key: 'businessProfile' },
   { label: '圖文選單', icon: Grid2X2, key: 'rich-menu' },
-  { label: 'LINE Touch', icon: MousePointer2 },
-  { label: '帳務專區', icon: Database },
-  { label: '最新資訊', icon: Info },
-  { label: '設定', icon: Settings },
-  { label: 'Help', icon: CircleHelp },
-  { label: '擴充功能', icon: Puzzle }
+  { label: 'LINE Touch', icon: MousePointer2, key: 'lineTouch' },
+  { label: '帳務專區', icon: Database, key: 'billing' },
+  { label: '最新資訊', icon: Info, key: 'latest' },
+  { label: '設定', icon: Settings, key: 'settings' },
+  { label: 'Help', icon: CircleHelp, key: 'help' },
+  { label: '擴充功能', icon: Puzzle, key: 'extensions' }
 ];
 
 function TemplateThumb({ template, selected, onClick }: { template: RichMenuTemplate; selected: boolean; onClick: () => void }) {
@@ -66,10 +68,10 @@ function TemplateThumb({ template, selected, onClick }: { template: RichMenuTemp
   );
 }
 
-function MobileHeader({ title, onBack }: { title: string; onBack?: () => void }) {
+function MobileHeader({ title, onBack, onMenu }: { title: string; onBack?: () => void; onMenu?: () => void }) {
   return (
     <div className="oa-mobile-header">
-      {onBack ? <button className="mobile-back" onClick={onBack}><ChevronLeft size={28} /></button> : <button className="mobile-menu"><Menu size={24} /></button>}
+      {onBack ? <button className="mobile-back" onClick={onBack}><ChevronLeft size={28} /></button> : <button className="mobile-menu" onClick={onMenu}><Menu size={24} /></button>}
       <strong>{title}</strong>
       <span className="mobile-header-spacer" />
     </div>
@@ -91,7 +93,26 @@ export function MobileRichMenuSimulator() {
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
+  const [activeFeature, setActiveFeature] = useState<FeatureKey>('broadcast');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [bannerIndex, setBannerIndex] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const banners = [
+    ['官方帳號訊息費折抵方案', 'LINE 商家俱樂部會員獨享'],
+    ['LINE Official Account', '最新功能與服務公告'],
+    ['LINE Touch', 'NFC 輕觸即開啟服務']
+  ] as const;
+
+  const openFeature = (key: FeatureKey | 'rich-menu') => {
+    setDrawerOpen(false);
+    if (key === 'rich-menu') {
+      setPage('intro');
+      return;
+    }
+    setActiveFeature(key);
+    setPage('feature');
+  };
 
   const selectedTemplate = useMemo(
     () => templates.find(t => t.id === templateId) ?? null,
@@ -201,6 +222,8 @@ export function MobileRichMenuSimulator() {
     setImageName('');
     setMenuLabels([]);
     setDone(false);
+    setDrawerOpen(false);
+    setBannerIndex(0);
   };
 
   return (
@@ -217,7 +240,7 @@ export function MobileRichMenuSimulator() {
         <section className="oa-mobile-device" aria-label="LINE Official Account 手機版模擬器">
           {page === 'home' && (
             <div className="oa-mobile-screen">
-              <MobileHeader title="主頁" />
+              <MobileHeader title="主頁" onMenu={() => setDrawerOpen(true)} />
               <div className="mobile-account-card">
                 <div className="mobile-account-avatar">K</div>
                 <div className="mobile-account-copy"><strong>康立全球智能系統</strong><span>@k-linkintelligent</span></div>
@@ -225,17 +248,17 @@ export function MobileRichMenuSimulator() {
               </div>
               <div className="mobile-stat-row"><span>目標好友數</span><strong>12</strong><ChevronRight /></div>
               <div className="mobile-stat-row"><span>免費訊息則數</span><strong>9 <small>/ 200</small></strong><ChevronRight /></div>
-              <button className="mobile-broadcast-btn">傳送群發訊息</button>
-              <div className="mobile-progress-row">
+              <button className="mobile-broadcast-btn" onClick={() => openFeature('broadcast')}>傳送群發訊息</button>
+              <button className="mobile-progress-row mobile-progress-button" onClick={() => openFeature('addfriend')}>
                 <div className="mobile-progress-ring">◎</div>
                 <div><strong>接著有效率地增加好友人數吧！</strong><span>還剩4個步驟</span></div>
                 <ChevronRight />
-              </div>
+              </button>
               <div className="mobile-home-grid">
                 {homeItems.map(item => {
                   const Icon = item.icon;
                   return (
-                    <button key={item.label} onClick={() => item.key === 'rich-menu' && setPage('intro')}>
+                    <button key={item.label} onClick={() => openFeature(item.key)}>
                       <Icon size={34} strokeWidth={2.2} />
                       <span>{item.label.split('\n').map((line, i) => <span key={`${line}-${i}`}>{line}</span>)}</span>
                     </button>
@@ -243,21 +266,36 @@ export function MobileRichMenuSimulator() {
                 })}
               </div>
               <div className="mobile-home-banner">
-                <button className="banner-arrow">‹</button>
-                <div className="banner-copy">
-                  <strong>官方帳號訊息費折抵方案</strong>
-                  <span>LINE 商家俱樂部會員獨享</span>
-                </div>
+                <button className="banner-arrow" onClick={() => setBannerIndex(i => (i + banners.length - 1) % banners.length)}>‹</button>
+                <button className="banner-copy" onClick={() => openFeature(bannerIndex === 2 ? 'lineTouch' : 'latest')}>
+                  <strong>{banners[bannerIndex][0]}</strong>
+                  <span>{banners[bannerIndex][1]}</span>
+                </button>
                 <div className="banner-people">👩🏻‍💼💬👩🏻‍💼</div>
-                <button className="banner-arrow">›</button>
+                <button className="banner-arrow" onClick={() => setBannerIndex(i => (i + 1) % banners.length)}>›</button>
               </div>
               <div className="mobile-bottom-tabs current-four">
-                <button className="active"><Home /></button>
-                <button className="badge-tab"><MessageCircle /><b>99+</b></button>
-                <button><BarChart3 /></button>
-                <button><Bell /></button>
+                <button className="active" onClick={() => setPage('home')}><Home /></button>
+                <button className="badge-tab" onClick={() => openFeature('chat')}><MessageCircle /><b>99+</b></button>
+                <button onClick={() => openFeature('analytics')}><BarChart3 /></button>
+                <button onClick={() => openFeature('notifications')}><Bell /></button>
               </div>
+              {drawerOpen && (
+                <div className="mobile-drawer-backdrop" onClick={() => setDrawerOpen(false)}>
+                  <div className="mobile-side-drawer" onClick={e => e.stopPropagation()}>
+                    <div className="drawer-account"><div className="mobile-account-avatar">K</div><div><strong>康立全球智能系統</strong><span>@k-linkintelligent</span></div></div>
+                    <button onClick={() => openFeature('businessProfile')}>商業簡介</button>
+                    <button onClick={() => openFeature('settings')}>設定</button>
+                    <button onClick={() => openFeature('billing')}>帳務專區</button>
+                    <button onClick={() => openFeature('help')}>Help</button>
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+
+          {page === 'feature' && (
+            <MobileFeaturePage feature={activeFeature} onBack={() => setPage('home')} />
           )}
 
           {page === 'intro' && (
