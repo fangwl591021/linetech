@@ -246,13 +246,13 @@ export function MobileRichMenuSimulator() {
           {page === 'home' && (
             <div className="oa-mobile-screen">
               <MobileHeader title="主頁" onMenu={() => setDrawerOpen(true)} />
-              <div className="mobile-account-card">
+              <button className="mobile-account-card mobile-account-button" onClick={() => openFeature('businessProfile', '商業簡介')}>
                 <div className="mobile-account-avatar">K</div>
                 <div className="mobile-account-copy"><strong>康立全球智能系統</strong><span>@k-linkintelligent</span></div>
                 <ChevronRight className="mobile-row-chevron" />
-              </div>
-              <div className="mobile-stat-row"><span>目標好友數</span><strong>12</strong><ChevronRight /></div>
-              <div className="mobile-stat-row"><span>免費訊息則數</span><strong>9 <small>/ 200</small></strong><ChevronRight /></div>
+              </button>
+              <button className="mobile-stat-row mobile-stat-button" onClick={() => openFeature('addfriend', '增加好友人數')}><span>目標好友數</span><strong>12</strong><ChevronRight /></button>
+              <button className="mobile-stat-row mobile-stat-button" onClick={() => openFeature('billing', '帳務專區')}><span>免費訊息則數</span><strong>9 <small>/ 200</small></strong><ChevronRight /></button>
               <button className="mobile-broadcast-btn" onClick={() => openFeature('broadcast', '群發訊息')}>傳送群發訊息</button>
               <button className="mobile-progress-row mobile-progress-button" onClick={() => openFeature('addfriend', '增加好友人數')}>
                 <div className="mobile-progress-ring">◎</div>
