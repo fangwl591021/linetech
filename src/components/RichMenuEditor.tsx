@@ -26,7 +26,8 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
   const fileRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState('');
   const [expanded, setExpanded] = useState<string>(template.areas[0]?.id ?? 'A');
-  const [libraryOpen, setLibraryOpen] = useState(false);\n  const [imageMenuOpen, setImageMenuOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [imageMenuOpen, setImageMenuOpen] = useState(false);
 
   const patch = <K extends keyof RichMenuDraft>(key: K, value: RichMenuDraft[K]) => onChange({ ...draft, [key]: value });
 
