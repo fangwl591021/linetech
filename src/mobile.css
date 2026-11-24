@@ -220,3 +220,34 @@
 .broadcast-preview-sheet{width:100%;background:#fff;border-radius:16px 16px 0 0;min-height:45%}
 .broadcast-preview-body{padding:20px 16px;display:flex;flex-direction:column;gap:8px;color:#8c9498;font-size:12px}
 .broadcast-preview-chip{align-self:flex-start;background:#f0f3f4;border-radius:15px;padding:8px 11px;color:#3f484d}
+
+/* Latest official text editor + settings flow */
+.broadcast-slot-area.latest-editor{padding-bottom:138px}
+.broadcast-slot-card.editor-open{padding:0;align-items:stretch}
+.broadcast-text-editor{width:100%;display:flex;flex-direction:column;background:#fff}
+.broadcast-text-editor-head{height:38px;border-bottom:1px solid #e8eaeb;display:flex;align-items:center;justify-content:space-between;padding:0 10px}
+.broadcast-text-editor-head strong{font-size:12px;color:#41494d}
+.broadcast-text-editor-head button{border:0;background:#fff;color:#159c49;font-size:10px;font-weight:700}
+.broadcast-text-editor textarea{min-height:116px;border:0;padding:10px;font-size:13px;resize:none;outline:none}
+.broadcast-text-editor-foot{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-top:1px solid #eef0f1}
+.broadcast-text-editor-foot button{height:30px;border:1px solid #d4d8da;background:#fff;padding:0 8px;display:flex;align-items:center;gap:4px;font-size:10px}
+.broadcast-text-editor-foot span{font-size:9px;color:#92999d}
+.broadcast-slot-selected-btn,.broadcast-slot-add-button{width:100%;height:100%;min-height:72px;border:0;background:transparent;display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;text-align:left;color:inherit}
+.broadcast-slot-add-button{display:flex;justify-content:center}
+.broadcast-create-latest-bottom{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e1e4e6;padding:9px 13px 12px;display:flex;flex-direction:column;gap:7px;z-index:14}
+.broadcast-create-latest-bottom button{height:50px;border-radius:3px;font-size:15px;font-weight:800}
+.broadcast-next-latest{border:0;background:#58d96a;color:#fff}
+.broadcast-next-latest:disabled{background:#e3e5e6;color:#b8bdc0}
+.broadcast-save-latest{border:1px solid #d8dcdf;background:#fff;color:#8f969a}
+.broadcast-save-latest:disabled{color:#c1c5c8;background:#fafafa}
+.broadcast-settings-latest{padding:12px 14px 95px;background:#f5f6f7;min-height:calc(100% - 72px)}
+.broadcast-settings-latest section{background:#fff;border:1px solid #e1e4e6;margin-bottom:10px;padding:13px}
+.broadcast-settings-latest h3{margin:0 0 10px;font-size:13px;color:#30363a}
+.broadcast-radio-latest,.broadcast-switch-latest{min-height:44px;border-top:1px solid #eef0f1;display:flex;align-items:center;gap:8px;font-size:12px}
+.broadcast-switch-latest{justify-content:space-between}
+.broadcast-radio-latest input,.broadcast-switch-latest input{accent-color:#06c755}
+.broadcast-datetime-latest,.broadcast-count-latest{width:100%;height:38px;border:1px solid #c5cacf;border-radius:3px;padding:0 8px;margin-top:8px}
+.broadcast-official-filter-help{font-size:9px;color:#81898e;padding-top:7px}
+.broadcast-settings-latest-bottom{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e0e3e5;padding:8px 10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;z-index:14}
+.broadcast-settings-latest-bottom button{height:44px;border:1px solid #d4d8da;background:#fff;color:#555;font-size:10px;font-weight:700}
+.broadcast-settings-latest-bottom button.send{border-color:#06c755;background:#06c755;color:#fff}
