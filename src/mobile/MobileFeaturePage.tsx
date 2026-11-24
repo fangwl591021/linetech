@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   BarChart3,
   Bell,
@@ -85,7 +85,7 @@ function SaveBar({ label = '儲存', onClick }: { label?: string; onClick: () =>
   return <div className="feature-savebar"><button onClick={onClick}>{label}</button></div>;
 }
 
-function Notice({ children }: { children: React.ReactNode }) {
+function Notice({ children }: { children: ReactNode }) {
   return <div className="feature-notice">{children}</div>;
 }
 
