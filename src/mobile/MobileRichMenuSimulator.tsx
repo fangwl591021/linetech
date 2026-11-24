@@ -2,7 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   Bell,
+  Bot,
   BriefcaseBusiness,
+  Clock3,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
@@ -35,18 +37,15 @@ const homeItems = [
   { label: '群發訊息', icon: RadioTower },
   { label: '加入好友\n的歡迎訊息', icon: MessageCircle },
   { label: '自動回應\n訊息', icon: MousePointer2 },
-  { label: '圖文訊息', icon: ImageIcon },
-  { label: '多頁訊息', icon: ImageIcon },
+  { label: 'AI自動回應\n訊息', icon: Bot },
   { label: '優惠券', icon: Ticket },
   { label: '集點卡', icon: CreditCard },
-  { label: '增加好友人\n數', icon: UserPlus },
-  { label: '商業簡介', icon: BriefcaseBusiness },
-  { label: '圖文選單', icon: Grid2X2, key: 'rich-menu' },
-  { label: 'LINE Touch', icon: MousePointer2 },
+  { label: '增加好友', icon: UserPlus },
+  { label: '基本檔案', icon: BriefcaseBusiness },
+  { label: '使用狀況', icon: BarChart3 },
   { label: '最新資訊', icon: Info },
   { label: '設定', icon: Settings },
-  { label: 'Help', icon: CircleHelp },
-  { label: '擴充功能', icon: Puzzle }
+  { label: 'Help', icon: CircleHelp }
 ];
 
 function TemplateThumb({ template, selected, onClick }: { template: RichMenuTemplate; selected: boolean; onClick: () => void }) {
@@ -234,7 +233,7 @@ export function MobileRichMenuSimulator() {
                 {homeItems.map(item => {
                   const Icon = item.icon;
                   return (
-                    <button key={item.label} onClick={() => item.key === 'rich-menu' && setPage('intro')}>
+                    <button key={item.label}>
                       <Icon size={34} strokeWidth={2.2} />
                       <span>{item.label.split('\n').map((line, i) => <span key={`${line}-${i}`}>{line}</span>)}</span>
                     </button>
@@ -243,7 +242,7 @@ export function MobileRichMenuSimulator() {
               </div>
               <div className="mobile-bottom-tabs">
                 <button className="active"><Home /><span>主頁</span></button>
-                <button><Play /><span>內容</span></button>
+                <button><Clock3 /><span>提醒</span></button>
                 <button className="badge-tab"><MessageCircle /><b>99+</b><span>聊天</span></button>
                 <button><BarChart3 /><span>分析</span></button>
                 <button><Bell /><span>通知</span></button>
@@ -404,7 +403,11 @@ export function MobileRichMenuSimulator() {
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
           <h2>手機版圖文選單</h2>
-          <p>已依 2026/11 LINE 官方最新功能基準更新：官方預設圖片與 Linetech 原創圖庫分離，並保留下一步動作設定流程。</p>
+          <p>主頁已依 2026/11 官方手機版功能配置更新：加入 AI 自動回應訊息、基本檔案與使用狀況，移除舊版首頁捷徑。</p>
+          {page === 'home' && (
+            <button className="teacher-richmenu-entry" onClick={() => setPage('intro')}>進入圖文選單教學</button>
+          )}
+          <div className="teacher-route-note">此按鈕屬於 Linetech 教學輔助，不冒充 LINE 官方首頁捷徑。</div>
           <ol>
             <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
             <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
