@@ -4,12 +4,18 @@ export interface ReplyRule { id:string; keyword:string; reply:string; mode:'關�
 export interface TrainingConfig { welcome:string[]; welcomeEnabled:boolean; autoEnabled:boolean; rules:ReplyRule[] }
 const KEY='linetech.training.reply.v1';
 const EVENT='linetech-training-reply';
-const initial:TrainingConfig={welcome:['歡迎加入好友！'],welcomeEnabled:true,autoEnabled:true,rules:[]};
+// Taiwan App reference: the initial Default rule is stopped. Its actual content was not shown.
+const defaultRule:ReplyRule={id:'oa-default',title:'Default',keyword:'',keywords:[],mode:'預設回應',reply:'',messages:[],enabled:false};
+const initial:TrainingConfig={welcome:['歡迎加入好友！'],welcomeEnabled:true,autoEnabled:true,rules:[defaultRule]};
 export function readTraining():TrainingConfig {
-  try {return {...initial,...JSON.parse(localStorage.getItem(KEY)||'{}')};} catch {return initial;}
+  try {
+    const saved=JSON.parse(localStorage.getItem(KEY)||'{}');
+    const rules:ReplyRule[]=Array.isArray(saved.rules)?saved.rules:initial.rules;
+    return {...initial,...saved,rules:saved.defaultRuleInitialized||rules.some(r=>r.id==='oa-default'||r.title==='Default')?rules:[defaultRule,...rules]};
+  } catch {return initial;}
 }
 export function updateTraining(patch:Partial<TrainingConfig>):boolean {
-  try {localStorage.setItem(KEY,JSON.stringify({...readTraining(),...patch}));window.dispatchEvent(new Event(EVENT));return true;}catch{return false;}
+  try {localStorage.setItem(KEY,JSON.stringify({...readTraining(),...patch,defaultRuleInitialized:true}));window.dispatchEvent(new Event(EVENT));return true;}catch{return false;}
 }
 export function useTraining() {
   const [config,setConfig]=useState(readTraining);
