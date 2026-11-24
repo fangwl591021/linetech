@@ -234,7 +234,7 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版圖文選單教學模擬器</strong>
-          <span>Mobile Rich Menu Simulator – Phase 1</span>
+          <span>Mobile Rich Menu Simulator – Phase 1 ・ Build 2026.11.24-B1</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
