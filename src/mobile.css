@@ -499,3 +499,26 @@ button.official-list-button{cursor:pointer}
 .customer-chat-row.oa{justify-content:flex-start}
 .customer-avatar{flex:0 0 25px;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#555;font-size:11px}
 .customer-chat-row .customer-bubble{max-width:78%}
+
+/* RC4: newer official Japanese app screenshot reference; Chinese labels pending Taiwan verification. */
+.auto-hint-link{display:block;color:#06a846;font-size:12px;text-decoration:none;padding:7px 0 12px}
+.auto-rule-thumb{width:48px;height:48px;background:#e8eaec;display:grid;place-items:center;color:#c3c8cc;flex:0 0 48px}
+.auto-rule-row>button{gap:4px}.auto-rule-row>button strong{font-size:14px}
+.auto-on,.auto-off{border:1px solid #b4c3eb;color:#5a78bf;padding:2px 4px;font-size:10px}.auto-off{border-color:#ddd;color:#777}
+.auto-settings{padding:12px}
+.auto-source-section{display:grid;gap:10px;border:1px solid #e0e3e6;padding:12px;margin-bottom:12px}
+.auto-section-head{display:flex;align-items:center;justify-content:space-between}
+.auto-source-section strong,.auto-section-head strong{font-size:14px;color:#303438}
+.auto-source-section small{font-size:11px;color:#8b9299}
+.auto-source-section>input{border:1px solid #ddd;border-radius:4px;padding:10px;font-size:14px;min-width:0}
+.auto-radio{display:flex;gap:7px;align-items:center;font-size:14px;color:#303438}.auto-radio input{accent-color:#06c755}
+.auto-source-section .auto-link-row{padding:9px 0;border:0}.auto-link-row>span{display:flex;align-items:center;gap:6px;color:#7a8288;font-size:12px}
+.auto-keyword-entry button{background:white;color:#06a84b;border:1px solid #06c755}
+.auto-keyword-entry button:disabled{background:white;color:#b0b8b3;border-color:#ddd}
+.auto-inline-action{padding:10px 0}.auto-inline-action button{width:100%;height:44px;border:0;border-radius:4px;background:#06c755;color:white;font-weight:700;font-size:15px}.auto-inline-action button:disabled{background:#ddd;color:#aaa}
+.auto-reply-footer.auto-stack{flex-direction:column}
+.auto-reply-footer .auto-secondary,.auto-inline-action .auto-secondary{background:#fff;border:1px solid #06c755;color:#06a84b}
+.auto-reply-footer .auto-secondary:disabled{border-color:#e4e7e8;color:#a6adb0;background:white}
+.auto-delete-link{display:block;margin:12px auto;border:0;background:white;color:#a13b3b}
+.auto-status-copy{padding:0 18px 18px;color:#303438;font-size:13px}
+.auto-reference{font-size:12px;line-height:1.5}.auto-reference summary{cursor:pointer;font-weight:700}.auto-reference img{max-width:100%;height:auto;display:block}.auto-reference a{display:block;color:#167c44;margin:6px 0}
