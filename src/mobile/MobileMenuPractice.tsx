@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { RichMenuTemplate, ActionType } from '../domain/types';
-import { useTraining, resolveReply, welcomeText } from './trainingState';
+import { useTraining, resolveRule, ruleMessages, welcomeText } from './trainingState';
 import { useAssets, usableCoupons } from './trainingAssets';
 
 export interface MobileMenuConfig {
@@ -45,7 +45,7 @@ export function MobileMenuStep({step,template,image,config,onChange,onNext,onBac
   </div>;
 }
 interface ChatMessage {role:'friend'|'oa';text:string}
-export function CustomerPractice({template,image,config}:{template:RichMenuTemplate|null;image:string;config:MobileMenuConfig}){
+export function CustomerPractice({template,image,config,context='menu'}:{template:RichMenuTemplate|null;image:string;config:MobileMenuConfig;context?:'menu'|'reply'|'welcome'|'general'}){
   const training=useTraining();
   const assets=useAssets();
   const [openedAsset,setOpenedAsset]=useState<string|null>(null);
@@ -65,18 +65,18 @@ export function CustomerPractice({template,image,config}:{template:RichMenuTempl
   useEffect(()=>setOpen(config.show),[config.show]);
   const send=(value:string)=>{
     if(!value.trim())return;
-    const reply=resolveReply(value,training);
-    setMessages(m=>[...m,{role:'friend',text:value},...(reply?[{role:'oa' as const,text:reply}]:[])]);
-    setText('');setNotice(reply?'已命中回應規則':'未命中回應規則');
+    const rule=resolveRule(value,training);
+    setMessages(m=>[...m,{role:'friend',text:value},...(rule?ruleMessages(rule).map(text=>({role:'oa' as const,text:welcomeText(text)})):[])]);
+    setText('');setNotice(!training.autoEnabled?'自動回應已停用':rule?'已觸發：'+(rule.title||rule.keyword||'自動回應'):'沒有符合的回應規則');
   };
   const follow=()=>{setMessages(training.welcomeEnabled?training.welcome.map(text=>({role:'oa',text:welcomeText(text)})):[]);setNotice(training.welcomeEnabled?'已模擬加入好友':'歡迎訊息已停用');setOpen(config.show);};
   const tap=(id:string)=>{const a=config.actions[id];if(!a||a.type==='none'){setNotice('區域 '+id+' 尚未設定動作');return;}if(a.type==='text'){send(a.value);return;}if(a.type==='coupon'){if(assets.coupons.some(x=>x.id===a.value&&x.status==='saved')){setOpenedAsset(a.value);setNotice('');}else setNotice('找不到已建立優惠券');return;}if(a.type==='reward'){if(assets.reward?.published){setOpenedAsset('reward');setNotice('');}else setNotice('尚未公開集點卡');return;}setNotice((actionLabels[a.type]+'：'+a.value)+'（僅模擬，不會開啟外部服務）');};
   return <div className="customer-practice">
     <h3>顧客手機即時測試</h3><small>Linetech 教學擴充・本機模擬</small>
-    <div className="customer-practice-tools"><button onClick={follow}>模擬加入好友</button><button onClick={()=>{setMessages([]);setNotice('');}}>清空對話</button><label><input type="checkbox" checked={frame} onChange={e=>setFrame(e.target.checked)}/>熱區</label></div>
-    <div className="customer-phone"><div className="customer-head">康立全球智能系統</div><div className="customer-chat" aria-live="polite">{messages.map((m,i)=><div key={i} className={'customer-bubble '+m.role}>{m.text}</div>)}</div>
+    <div className="customer-practice-tools">{context!=='reply'&&<button onClick={follow}>模擬加入好友</button>}<button onClick={()=>{setMessages([]);setNotice('');}}>清空對話</button>{context==='menu'&&<label><input type="checkbox" checked={frame} onChange={e=>setFrame(e.target.checked)}/>熱區</label>}</div>
+    <div className="customer-phone"><div className="customer-head"><span>‹</span><strong>康立全球智能系統</strong><span>☰</span></div><div className="customer-chat" aria-live="polite">{messages.map((m,i)=><div key={i} className={'customer-chat-row '+m.role}>{m.role==='oa'&&<span className="customer-avatar">K</span>}<div className={'customer-bubble '+m.role}>{m.text}</div></div>)}</div>
     {open&&template&&image&&<div className="customer-menu" style={{aspectRatio:template.aspectRatio}}><img src={image} alt="顧客圖文選單"/>{template.areas.map(a=><button key={a.id} aria-label={'熱區 '+a.id} className={frame?'with-frame':''} style={{left:a.x*100+'%',top:a.y*100+'%',width:a.width*100+'%',height:a.height*100+'%'}} onClick={()=>tap(a.id)}>{frame?a.id:''}</button>)}</div>}
-    <button className="customer-chatbar" onClick={()=>setOpen(v=>!v)}>{config.barText||'選單'} {open?'⌄':'⌃'}</button><form className="customer-input" onSubmit={e=>{e.preventDefault();send(text);}}><input aria-label="顧客訊息" placeholder="輸入關鍵字" value={text} onChange={e=>setText(e.target.value)}/><button disabled={!text.trim()}>傳送</button></form></div>
+    {template&&image&&<button className="customer-chatbar" onClick={()=>setOpen(v=>!v)}>{config.barText||'選單'} {open?'⌄':'⌃'}</button>}<form className="customer-input" onSubmit={e=>{e.preventDefault();send(text);}}><input aria-label="顧客訊息" placeholder="輸入關鍵字" value={text} onChange={e=>setText(e.target.value)}/><button disabled={!text.trim()}>傳送</button></form></div>
     {openedAsset&&<div className="customer-asset-panel">
     <button className="customer-asset-close" onClick={()=>setOpenedAsset(null)}>返回聊天室</button>
     {coupon?<><img src={coupon.image} alt="優惠券"/><h3>{coupon.name}</h3><p>{coupon.start} ～ {coupon.end}</p><p>{coupon.details}</p><p>{coupon.condition}</p>
