@@ -36,6 +36,7 @@ import {
 
 import { readTraining, updateTraining, useTraining, welcomeText, type ReplyRule } from './trainingState';
 
+import { AssetEditors } from './AssetEditors';
 export type FeatureKey =
   | 'welcome'
   | 'autoreply'
@@ -104,10 +105,10 @@ function FeatureRouter({ feature, onBack }: Props) {
   switch (feature) {
     case 'welcome': return <WelcomePage onBack={onBack}/>;
     case 'autoreply': return <AutoReplyPage onBack={onBack}/>;
-    case 'richmessage': return <RichMessagePage onBack={onBack}/>;
+    case 'richmessage': return <AssetEditors kind="richmessage" onBack={onBack}/>;
     case 'multipage': return <MultiPagePage onBack={onBack}/>;
-    case 'coupon': return <CouponPage onBack={onBack}/>;
-    case 'stampcard': return <StampCardPage onBack={onBack}/>;
+    case 'coupon': return <AssetEditors kind="coupon" onBack={onBack}/>;
+    case 'stampcard': return <AssetEditors kind="stampcard" onBack={onBack}/>;
     case 'addfriend': return <AddFriendPage onBack={onBack}/>;
     case 'businessProfile': return <BusinessProfilePage onBack={onBack}/>;
     case 'lineTouch': return <LineTouchPage onBack={onBack}/>;
@@ -199,32 +200,6 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
   );
 }
 
-function RichMessagePage({ onBack }: { onBack: () => void }) {
-  const [page,setPage]=useState<'list'|'create'>('list');
-  const [title,setTitle]=useState('');
-  const [template,setTemplate]=useState('1');
-  const [action,setAction]=useState('連結');
-  const [toast,setToast]=useState('');
-  const flash=(t:string)=>{setToast(t);setTimeout(()=>setToast(''),1500);};
-  return <div className="oa-mobile-screen official-feature-screen">
-    {page==='list'?<>
-      <Header title="圖文訊息" onBack={onBack}/>
-      <div className="official-feature-body"><div className="official-empty-center">尚無圖文訊息</div></div>
-      <div className="official-bottom-save"><button onClick={()=>setPage('create')}>建立</button></div>
-    </>:<>
-      <Header title="建立圖文訊息" onBack={()=>setPage('list')}/>
-      <div className="official-feature-body">
-        <section className="official-form-section"><h3>標題</h3><input maxLength={30} value={title} onChange={e=>setTitle(e.target.value)} placeholder="輸入標題"/><small>{title.length}/30</small></section>
-        <section className="official-form-section"><h3>版型</h3><div className="richmessage-template-grid">{['1','2','3','4'].map(x=><button key={x} className={template===x?'active':''} onClick={()=>setTemplate(x)}><span>{x}</span></button>)}</div></section>
-        <section className="official-form-section"><h3>圖片</h3><div className="official-image-placeholder">1040 × 1040</div><button className="official-add-outline"><ImageIcon size={17}/> 選擇圖片</button></section>
-        <section className="official-form-section"><h3>動作</h3><select value={action} onChange={e=>setAction(e.target.value)}><option>連結</option><option>優惠券</option></select><input placeholder="輸入網址或選擇優惠券"/></section>
-      </div>
-      <div className="official-bottom-save"><button onClick={()=>{flash('已儲存圖文訊息');setTimeout(()=>setPage('list'),500)}}>儲存</button></div>
-    </>}
-    <Toast text={toast}/>
-  </div>;
-}
-
 function MultiPagePage({ onBack }: { onBack: () => void }) {
   return <div className="oa-mobile-screen official-feature-screen">
     <Header title="多頁訊息" onBack={onBack}/>
@@ -232,63 +207,6 @@ function MultiPagePage({ onBack }: { onBack: () => void }) {
       <div className="official-info-card"><ImageIcon size={42}/><strong>多頁訊息目前請使用電腦版設定</strong><p>LINE 官方操作手冊目前明確註記，多頁訊息格式尚未開放手機版建立。手機版可在其他訊息功能中選取已建立的多頁訊息。</p></div>
       <div className="official-empty-center">尚無可選用的多頁訊息</div>
     </div>
-  </div>;
-}
-
-function CouponPage({ onBack }: { onBack: () => void }) {
-  const [page,setPage]=useState<'list'|'type'|'create'>('list');
-  const [type,setType]=useState('無條件');
-  const [name,setName]=useState('');
-  const [visibility,setVisibility]=useState('所有人');
-  const [toast,setToast]=useState('');
-  const flash=(t:string)=>{setToast(t);setTimeout(()=>setToast(''),1500);};
-  return <div className="oa-mobile-screen official-feature-screen">
-    {page==='list'?<>
-      <Header title="優惠券" onBack={onBack}/>
-      <div className="official-feature-body"><div className="official-empty-center">尚無優惠券</div></div>
-      <div className="official-bottom-save"><button onClick={()=>setPage('type')}>建立</button></div>
-    </>:page==='type'?<>
-      <Header title="建立優惠券" onBack={()=>setPage('list')}/>
-      <div className="official-feature-body coupon-type-list">
-        {['無條件','抽獎','好友介紹'].map(x=><button key={x} onClick={()=>{setType(x);setPage('create')}}><Ticket size={28}/><div><strong>{x}</strong><span>{x==='無條件'?'任何取得連結的用戶都可領取':x==='抽獎'?'抽獎中獎後可取得優惠券':'分享給好友後取得優惠券'}</span></div><ChevronRight/></button>)}
-      </div>
-    </>:<>
-      <Header title={type+'優惠券'} onBack={()=>setPage('type')}/>
-      <div className="official-feature-body">
-        <section className="official-form-section"><h3>優惠券名稱</h3><input value={name} onChange={e=>setName(e.target.value)} placeholder="輸入優惠券名稱"/></section>
-        <section className="official-form-section"><h3>有效期間</h3><input type="date"/><input type="date"/></section>
-        <section className="official-form-section"><h3>公開範圍</h3><select value={visibility} onChange={e=>setVisibility(e.target.value)}><option>所有人</option><option>僅官方帳號好友</option></select></section>
-        <section className="official-form-section"><h3>使用條件</h3><textarea placeholder="輸入優惠券使用條件"/></section>
-      </div>
-      <div className="official-bottom-save two"><button className="secondary" onClick={()=>flash('已儲存草稿')}>儲存草稿</button><button onClick={()=>{flash('優惠券已儲存');setTimeout(()=>setPage('list'),500)}}>儲存</button></div>
-    </>}
-    <Toast text={toast}/>
-  </div>;
-}
-
-function StampCardPage({ onBack }: { onBack: () => void }) {
-  const [page,setPage]=useState<'list'|'create'>('list');
-  const [goal,setGoal]=useState('10');
-  const [expiry,setExpiry]=useState('最後一次使用後 6 個月');
-  const [toast,setToast]=useState('');
-  const flash=(t:string)=>{setToast(t);setTimeout(()=>setToast(''),1500);};
-  return <div className="oa-mobile-screen official-feature-screen">
-    {page==='list'?<>
-      <Header title="集點卡" onBack={onBack}/>
-      <div className="official-feature-body"><div className="official-empty-center">尚未建立集點卡</div></div>
-      <div className="official-bottom-save"><button onClick={()=>setPage('create')}>建立集點卡</button></div>
-    </>:<>
-      <Header title="建立集點卡" onBack={()=>setPage('list')}/>
-      <div className="official-feature-body">
-        <div className="stamp-preview"><div className="stamp-dots">{Array.from({length:Number(goal)}).slice(0,10).map((_,i)=><i key={i}/>)}</div><strong>集滿 {goal} 點</strong></div>
-        <section className="official-form-section"><h3>卡片顏色</h3><div className="color-swatch-row">{['#06c755','#f5a623','#4a90e2','#e85d75','#8b63d9'].map(c=><button key={c} style={{background:c}}/>)}</div></section>
-        <section className="official-form-section"><h3>集滿點數</h3><select value={goal} onChange={e=>setGoal(e.target.value)}>{['5','10','15','20'].map(x=><option key={x}>{x}</option>)}</select></section>
-        <section className="official-form-section"><h3>滿點禮優惠</h3><button className="official-add-outline"><Gift size={17}/> 選擇優惠券</button></section>
-        <section className="official-form-section"><h3>有效期限</h3><select value={expiry} onChange={e=>setExpiry(e.target.value)}><option>最後一次使用後 6 個月</option><option>首次使用後 1 年</option><option>不設定</option></select></section>
-      </div>
-      <div className="official-bottom-save"><button onClick={()=>{flash('集點卡已公開');setTimeout(()=>setPage('list'),500)}}>儲存並公開集點卡</button></div>
-    </>}
-    <Toast text={toast}/>
   </div>;
 }
 
