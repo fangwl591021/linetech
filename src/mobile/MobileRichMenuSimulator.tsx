@@ -88,7 +88,8 @@ export function MobileRichMenuSimulator() {
   const [imageDataUrl, setImageDataUrl] = useState('');
   const [imageName, setImageName] = useState('');
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
-  const [done, setDone] = useState(false);\n  const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
+  const [done, setDone] = useState(false);
+  const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const selectedTemplate = useMemo(
