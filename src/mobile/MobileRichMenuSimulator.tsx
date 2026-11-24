@@ -2,18 +2,20 @@ import { useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   Bell,
-  Bot,
   BriefcaseBusiness,
-  Clock3,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
   CreditCard,
+  Database,
+  Grid2X2,
   Home,
+  Image as ImageIcon,
   Info,
   Menu,
   MessageCircle,
   MousePointer2,
+  Puzzle,
   RadioTower,
   Settings,
   Ticket,
@@ -33,15 +35,19 @@ const homeItems = [
   { label: '群發訊息', icon: RadioTower },
   { label: '加入好友\n的歡迎訊息', icon: MessageCircle },
   { label: '自動回應\n訊息', icon: MousePointer2 },
-  { label: 'AI自動回應\n訊息', icon: Bot },
+  { label: '圖文訊息', icon: MessageCircle },
+  { label: '多頁訊息', icon: ImageIcon },
   { label: '優惠券', icon: Ticket },
   { label: '集點卡', icon: CreditCard },
-  { label: '增加好友', icon: UserPlus },
-  { label: '基本檔案', icon: BriefcaseBusiness },
-  { label: '使用狀況', icon: BarChart3 },
+  { label: '增加好友人數', icon: UserPlus },
+  { label: '商業簡介', icon: BriefcaseBusiness },
+  { label: '圖文選單', icon: Grid2X2, key: 'rich-menu' },
+  { label: 'LINE Touch', icon: MousePointer2 },
+  { label: '帳務專區', icon: Database },
   { label: '最新資訊', icon: Info },
   { label: '設定', icon: Settings },
-  { label: 'Help', icon: CircleHelp }
+  { label: 'Help', icon: CircleHelp },
+  { label: '擴充功能', icon: Puzzle }
 ];
 
 function TemplateThumb({ template, selected, onClick }: { template: RichMenuTemplate; selected: boolean; onClick: () => void }) {
@@ -217,31 +223,39 @@ export function MobileRichMenuSimulator() {
                 <div className="mobile-account-copy"><strong>康立全球智能系統</strong><span>@k-linkintelligent</span></div>
                 <ChevronRight className="mobile-row-chevron" />
               </div>
-              <div className="mobile-stat-row"><span>目標好友數</span><strong>782</strong><ChevronRight /></div>
-              <div className="mobile-stat-row"><span>免費訊息則數</span><strong>0 <small>/ 200</small></strong><ChevronRight /></div>
+              <div className="mobile-stat-row"><span>目標好友數</span><strong>12</strong><ChevronRight /></div>
+              <div className="mobile-stat-row"><span>免費訊息則數</span><strong>9 <small>/ 200</small></strong><ChevronRight /></div>
               <button className="mobile-broadcast-btn">傳送群發訊息</button>
               <div className="mobile-progress-row">
                 <div className="mobile-progress-ring">◎</div>
-                <div><strong>接著有效率地增加好友人數吧！</strong><span>還剩3個步驟</span></div>
+                <div><strong>接著有效率地增加好友人數吧！</strong><span>還剩4個步驟</span></div>
                 <ChevronRight />
               </div>
               <div className="mobile-home-grid">
                 {homeItems.map(item => {
                   const Icon = item.icon;
                   return (
-                    <button key={item.label}>
+                    <button key={item.label} onClick={() => item.key === 'rich-menu' && setPage('intro')}>
                       <Icon size={34} strokeWidth={2.2} />
                       <span>{item.label.split('\n').map((line, i) => <span key={`${line}-${i}`}>{line}</span>)}</span>
                     </button>
                   );
                 })}
               </div>
-              <div className="mobile-bottom-tabs">
-                <button className="active"><Home /><span>主頁</span></button>
-                <button><Clock3 /><span>提醒</span></button>
-                <button className="badge-tab"><MessageCircle /><b>99+</b><span>聊天</span></button>
-                <button><BarChart3 /><span>分析</span></button>
-                <button><Bell /><span>通知</span></button>
+              <div className="mobile-home-banner">
+                <button className="banner-arrow">‹</button>
+                <div className="banner-copy">
+                  <strong>官方帳號訊息費折抵方案</strong>
+                  <span>LINE 商家俱樂部會員獨享</span>
+                </div>
+                <div className="banner-people">👩🏻‍💼💬👩🏻‍💼</div>
+                <button className="banner-arrow">›</button>
+              </div>
+              <div className="mobile-bottom-tabs current-four">
+                <button className="active"><Home /></button>
+                <button className="badge-tab"><MessageCircle /><b>99+</b></button>
+                <button><BarChart3 /></button>
+                <button><Bell /></button>
               </div>
             </div>
           )}
@@ -399,11 +413,7 @@ export function MobileRichMenuSimulator() {
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
           <h2>手機版圖文選單</h2>
-          <p>主頁已依 2026/11 官方手機版功能配置更新：加入 AI 自動回應訊息、基本檔案與使用狀況，移除舊版首頁捷徑。</p>
-          {page === 'home' && (
-            <button className="teacher-richmenu-entry" onClick={() => setPage('intro')}>進入圖文選單教學</button>
-          )}
-          <div className="teacher-route-note">此按鈕屬於 Linetech 教學輔助，不冒充 LINE 官方首頁捷徑。</div>
+          <p>主頁已依你提供的最新 LINE Official Account App 實際截圖更新；「圖文選單」保留在官方 4×4 功能捷徑中，可直接點擊進入教學。</p>
           <ol>
             <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
             <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
