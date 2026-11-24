@@ -357,3 +357,6 @@ button.official-list-button{cursor:pointer}
 .analysis-card-grid span{font-size:9px;color:#7d858a}.analysis-card-grid strong{font-size:21px}
 .analysis-bars{height:150px;display:flex;align-items:flex-end;gap:8px;padding:10px 4px}
 .analysis-bars i{flex:1;background:#06c755;border-radius:4px 4px 0 0;min-height:10px}
+
+.mobile-account-button,.mobile-stat-button{border:0;background:#fff;text-align:left;width:100%}
+.mobile-account-button:hover,.mobile-stat-button:hover{background:#fafbfb}
