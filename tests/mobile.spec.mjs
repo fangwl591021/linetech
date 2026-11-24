@@ -58,3 +58,33 @@ test('rich menu template and text hotspot share the customer chat',async({page})
   await page.locator('.menu-practice-footer button').click();
   await expect(page.locator('.menu-practice-screen')).toContainText('內容設定（3/3）');
 });
+
+test('coupon assets can be created, reused in broadcast and survive reload',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(5).click();
+  await page.locator('.asset-editor-footer button').click();
+  await page.locator('.coupon-type-list button').first().click();
+  await page.getByLabel('優惠券名稱',{exact:true}).fill('教學咖啡優惠');
+  const dates=page.locator('.asset-editor-body input[type=date]');
+  await dates.nth(0).fill('2020-01-01');await dates.nth(1).fill('2099-12-31');
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=','base64');
+  await page.getByLabel('優惠券圖片',{exact:true}).setInputFiles({name:'demo.png',mimeType:'image/png',buffer:png});
+  await page.locator('.asset-editor-body textarea').first().fill('教學使用');
+  await expect(page.locator('.asset-upload-preview')).toBeVisible();
+  await page.locator('.asset-editor-footer').getByRole('button',{name:'儲存',exact:true}).click();
+  await expect(page.locator('.asset-record')).toContainText('教學咖啡優惠');
+  await page.reload();
+  await page.locator('.mobile-home-grid > button').nth(0).click();
+  await page.getByRole('button',{name:'建立新訊息',exact:true}).click();
+  await page.locator('.broadcast-type-grid').getByRole('button',{name:'優惠券',exact:true}).click();
+  await page.getByLabel('選擇優惠券').selectOption({label:'教學咖啡優惠'});
+  await expect(page.locator('.broadcast-media-editor img')).toBeVisible();
+  await expect(page.getByRole('button',{name:'下一步',exact:true})).toBeEnabled();
+});
+test('rich messages expose eight independent square layouts',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(3).click();
+  await page.locator('.asset-editor-footer button').click();
+  await expect(page.locator('.rich-asset-grid button')).toHaveCount(8);
+  await page.locator('.rich-asset-grid button').last().click();
+  await expect(page.locator('.rich-asset-preview span')).toHaveCount(6);
+  await expect(page.locator('.asset-editor-footer button')).toBeDisabled();
+});
