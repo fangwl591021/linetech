@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
-import { BarChart3, Database, Megaphone, MessageCircleReply, MessagesSquare, PackageOpen, Users, UserRoundPlus } from 'lucide-react';
+import {
+  BarChart3,
+  Bot,
+  Database,
+  Megaphone,
+  MessageCircleReply,
+  MessagesSquare,
+  PackageOpen,
+  Users,
+  UserRoundPlus
+} from 'lucide-react';
 
 interface SidebarProps {
   active: 'rich-menu';
@@ -10,10 +20,15 @@ export function Sidebar({ active }: SidebarProps) {
     <aside className="sidebar">
       <NavItem icon={<Megaphone size={19}/>} label="群發訊息" />
       <NavItem icon={<BarChart3 size={19}/>} label="漸進式訊息" />
-      <NavItem icon={<MessageCircleReply size={19}/>} label="自動回應" />
+      <NavItem icon={<MessageCircleReply size={19}/>} label="自動回應" badge="AI β" />
+      <div className="sidebar-ai-hint">
+        <Bot size={14}/><span>AI 聊天機器人（β）</span>
+      </div>
+
       <div className="sidebar-divider" />
       <NavItem icon={<PackageOpen size={19}/>} label="訊息項目" />
       <NavItem icon={<Users size={19}/>} label="推廣相關" />
+
       <div className="sidebar-divider" />
       <div className="nav-group open">
         <div className="nav-row green">
@@ -22,13 +37,19 @@ export function Sidebar({ active }: SidebarProps) {
         <div className="subnav">加入好友的歡迎訊息</div>
         <div className={`subnav ${active === 'rich-menu' ? 'active' : ''}`}>圖文選單</div>
       </div>
+
       <NavItem icon={<Database size={19}/>} label="資料管理" />
       <div className="sidebar-divider" />
       <NavItem icon={<UserRoundPlus size={19}/>} label="增加好友人數" />
+
+      <div className="sidebar-current-note">
+        <strong>2026.11 功能基準</strong>
+        <span>已納入 AI 聊天機器人（β）、新版商業簡介規格與新版圖文選單流程。</span>
+      </div>
     </aside>
   );
 }
 
-function NavItem({ icon, label }: { icon: ReactNode; label: string }) {
-  return <div className="nav-row">{icon}<span>{label}</span><span className="arrow">›</span></div>;
+function NavItem({ icon, label, badge }: { icon: ReactNode; label: string; badge?: string }) {
+  return <div className="nav-row">{icon}<span>{label}</span>{badge && <b className="nav-new-badge">{badge}</b>}<span className="arrow">›</span></div>;
 }
