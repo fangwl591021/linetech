@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAssets, usableCoupons } from './trainingAssets';
 import {
   ChevronDown,
   ChevronLeft,
@@ -87,7 +88,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
 
   const startCreate = () => {
     setRecordId(null); setSlots([null,null,null]); setTextValues({}); setPhotos({});
-    setScheduled(false); setScheduleTime(''); setAudience('所有好友'); setPostToFeed(false); setLimitEnabled(false); setLimitCount('50');
+    setScheduled(false); setScheduleTime(''); setAudience('所有好友'); setPostToFeed(false); setLimitEnabled(false); setLimitCount('12');
     setPage('create');
     setActiveSlot(0);
     setPickerOpen(true);
@@ -106,20 +107,27 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
     setPickerOpen(true);
   };
 
-  const valid = Boolean(slots[0]) && slots.every((slot,i)=>!slot || (slot==='文字' ? Boolean(textValues[i]?.trim()) : slot==='照片' ? Boolean(photos[i]) : false));
-  const canSend = valid && (!scheduled || (Boolean(scheduleTime) && new Date(scheduleTime).getTime()>Date.now())) && (!limitEnabled || (Number.isInteger(Number(limitCount)) && Number(limitCount)>0));
+  const assets=useAssets();
+  const couponOptions=usableCoupons(assets);
+  const optionsFor=(slot:FormatType)=>slot==='優惠券'?couponOptions:slot==='圖文訊息'?assets.richMessages:[];
+  const assetFor=(slot:FormatType,i:number)=>optionsFor(slot).find(x=>x.id===textValues[i]);
+  const valid = Boolean(slots[0]) && slots.every((slot,i)=>!slot || (slot==='文字' ? Boolean(textValues[i]?.trim()) : slot==='照片' ? Boolean(photos[i]) : ['優惠券','圖文訊息'].includes(slot)?Boolean(assetFor(slot,i)):slot==='貼圖'?Boolean(textValues[i]):false));
+  const canSend = valid && audience==='所有好友' && (!scheduled || (Boolean(scheduleTime) && new Date(scheduleTime).getTime()>Date.now())) && (!limitEnabled || (Number.isInteger(Number(limitCount)) && Number(limitCount)>0 && Number(limitCount)<=12));
   const persist = (next:BroadcastRecord[]) => {
     try { localStorage.setItem(RECORD_KEY,JSON.stringify(next)); setRecords(next); return true; }
     catch { flash('本機儲存失敗，請縮小圖片或清理空間'); return false; }
   };
   const saveRecord = (nextStatus:RecordStatus) => {
     const id=recordId || String(Date.now())+'-'+Math.random().toString(36).slice(2);
-    const record:BroadcastRecord={id,status:nextStatus,slots:[...slots],values:{...textValues},photos:{...photos},scheduled,scheduleTime,audience,postToFeed,limitEnabled,limitCount,updatedAt:new Date().toISOString()};
+    const record:BroadcastRecord={id,status:nextStatus,slots:[...slots],values:{...textValues},photos:{...photos},scheduled,scheduleTime,audience,postToFeed:postToFeed&&slots.filter(Boolean).length===1,limitEnabled,limitCount,updatedAt:new Date().toISOString()};
     if(!persist([record,...records.filter(x=>x.id!==id)]))return;
     setRecordId(id); setStatus(nextStatus); setPage('list');
     flash(nextStatus==='草稿'?'草稿已儲存於本機':nextStatus==='已預約傳送'?'已建立模擬預約（不會真的發送）':'模擬傳送完成（未使用 LINE API）');
   };
   const reopen = (record:BroadcastRecord) => {
+    if(record.status==='已預約傳送'){
+      if(persist(records.map(x=>x.id===record.id?{...x,status:'草稿',scheduled:false,scheduleTime:''}:x))){setStatus('草稿');flash('已取消模擬預約，移至草稿');}return;
+    }
     setRecordId(record.status==='草稿'?record.id:null);setSlots([...record.slots]);setTextValues({...record.values});setPhotos({...record.photos});
     setScheduled(record.scheduled);setScheduleTime(record.scheduleTime);setAudience(record.audience);setPostToFeed(record.postToFeed);setLimitEnabled(record.limitEnabled);setLimitCount(record.limitCount);
     setPickerOpen(false);setPage('create');
@@ -201,7 +209,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                       ) : (
                         <div className="broadcast-media-editor">
                           <div className="broadcast-text-editor-head"><strong>{slot}</strong><div><button onClick={()=>openSlot(index)}>變更</button><button aria-label="刪除訊息" onClick={()=>removeSlot(index)}><X size={15}/></button></div></div>
-                          {slot==='照片'?<><input type="file" aria-label="選擇照片" accept="image/jpeg,image/png" onChange={e=>uploadPhoto(index,e.target.files?.[0])}/>{photos[index]&&<img src={photos[index]} alt="訊息照片"/>}</>:<p>此格式的內容選擇尚未核實，暫不可模擬傳送。</p>}
+                          {slot==='照片'?<><input type="file" aria-label="選擇照片" accept="image/jpeg,image/png" onChange={e=>uploadPhoto(index,e.target.files?.[0])}/>{photos[index]&&<img src={photos[index]} alt="訊息照片"/>}</>:['優惠券','圖文訊息'].includes(slot)?<><select aria-label={'選擇'+slot} value={textValues[index]||''} onChange={e=>setTextValues(v=>({...v,[index]:e.target.value}))}><option value="">請先建立並選擇{slot}</option>{optionsFor(slot).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select>{assetFor(slot,index)&&<img src={assetFor(slot,index)?.image} alt={slot+'預覽'}/>}</>:slot==='貼圖'?<><p>教學用表情示意（非 LINE 官方貼圖）</p><div className="training-stickers">{['😊','👍','❤️','🎉','🙏','☕'].map(x=><button key={x} aria-pressed={textValues[index]===x} onClick={()=>setTextValues(v=>({...v,[index]:x}))}>{x}</button>)}</div></>:<p>此格式的內容選擇尚未核實，暫不可模擬傳送。</p>}
                         </div>
                       )
                     ) : (
@@ -257,7 +265,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                     ? <span>尚未新增訊息</span>
                     : slots.map((slot, index) => slot ? (
                       <div className="broadcast-preview-chip" key={index}>
-                        {slot === '文字' ? (textValues[index] || '未輸入文字') : slot==='照片' && photos[index] ? <img src={photos[index]} alt="照片預覽"/> : slot+'（待完成）'}
+                        {slot === '文字' ? (textValues[index] || '未輸入文字') : slot==='照片' && photos[index] ? <img src={photos[index]} alt="照片預覽"/> : ['優惠券','圖文訊息'].includes(slot)&&assetFor(slot,index)?<><img src={assetFor(slot,index)?.image} alt={slot}/>{assetFor(slot,index)?.name}</>:slot==='貼圖'&&textValues[index]?textValues[index]:slot+'（待完成）'}
                       </div>
                     ) : null)}
                 </div>
@@ -291,7 +299,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
               <h3>群發訊息設定</h3>
               <label className="broadcast-switch-latest">
                 <span>同步張貼至貼文串</span>
-                <input type="checkbox" checked={postToFeed} onChange={e => setPostToFeed(e.target.checked)}/>
+                <input type="checkbox" checked={postToFeed&&slots.filter(Boolean).length===1} disabled={slots.filter(Boolean).length>1} onChange={e => setPostToFeed(e.target.checked)}/>
               </label>
               <label className="broadcast-switch-latest">
                 <span>指定群發訊息則數</span>
@@ -310,7 +318,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                 <input type="radio" checked={audience === '依屬性篩選'} onChange={() => setAudience('依屬性篩選')}/>
                 <span>依屬性篩選</span>
               </label>
-              {audience === '依屬性篩選' && <div className="broadcast-official-filter-help">依屬性篩選需符合 LINE 官方目標好友數條件。</div>}
+              {audience === '依屬性篩選' && <div className="broadcast-official-filter-help">依屬性篩選需至少 100 位目標好友；目前教學帳號為 12 位，因此暫不可傳送。</div>}
             </section>
           </div>
 
