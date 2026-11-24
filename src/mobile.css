@@ -4,3 +4,18 @@
 .mobile-linetech-btn{width:100%;height:56px;border-radius:5px;border:1.5px solid #18cd58;background:#f2fff7;color:#129a46;font-size:18px;font-weight:800;margin-bottom:8px}.official-mobile-note{margin:0 3px 10px;padding:8px 10px;border-left:3px solid #8aa0ad;background:#f6f8f9;color:#66757e;font-size:11px;line-height:1.45}.official-preset-overlay{background:rgba(0,0,0,.42)}.official-preset-sheet{height:100%;background:#fff;position:relative;padding-bottom:130px;overflow:auto}.official-preset-note{margin:12px 14px;padding:9px 10px;border-radius:5px;background:#f5f7f8;color:#667078;font-size:11px;text-align:center}.official-preset-card{margin:18px 14px;border:1px solid #d8dcdf;border-radius:8px;padding:10px}.official-preset-thumb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f2f4f5;padding:6px;border-radius:6px}.official-preset-thumb span{height:105px;background:#fff;border:1px solid #d8dcdf;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#596268;text-align:center}.official-preset-card p{font-size:11px;line-height:1.5;color:#70787d;margin:9px 2px 0}
 
 .teacher-richmenu-entry{width:100%;height:46px;border:0;border-radius:6px;background:#06c755;color:#fff;font-weight:800;font-size:14px;margin:2px 0 8px}.teacher-route-note{font-size:11px;line-height:1.45;color:#7b858a;margin:0 0 14px;padding:8px 10px;background:#f5f7f8;border-radius:6px}.mobile-home-grid{grid-template-columns:repeat(4,1fr);padding-bottom:82px}.mobile-home-grid>button{min-height:104px}
+
+/* 2026-11 latest LINE OA mobile home, grounded in user-provided screenshot */
+.mobile-home-grid{grid-template-columns:repeat(4,1fr);padding:0 15px 166px}
+.mobile-home-grid>button{min-height:104px}
+.mobile-home-grid button:nth-child(10) svg{fill:#34383b}
+.mobile-home-banner{height:82px;position:absolute;left:0;right:0;bottom:73px;z-index:9;background:#efff00;display:grid;grid-template-columns:34px 1fr auto 34px;align-items:center;gap:5px;padding:0 4px;color:#121212;border-top:1px solid #d8df00}
+.mobile-home-banner .banner-arrow{height:44px;border:0;border-radius:4px;background:rgba(92,106,0,.55);color:#fff;font-size:34px;line-height:1}
+.mobile-home-banner .banner-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mobile-home-banner .banner-copy strong{font-size:12px;line-height:1.2}
+.mobile-home-banner .banner-copy span{font-size:9px;white-space:nowrap}
+.mobile-home-banner .banner-people{font-size:21px;white-space:nowrap}
+.mobile-bottom-tabs.current-four{grid-template-columns:repeat(4,1fr)}
+.mobile-bottom-tabs.current-four button{font-size:0}
+.mobile-bottom-tabs.current-four svg{width:29px;height:29px}
+.mobile-bottom-tabs.current-four .badge-tab b{top:5px;right:21px}
