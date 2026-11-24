@@ -574,3 +574,53 @@ button.official-list-button{cursor:pointer}
 .auto-page-settings .auto-inline-action{padding:23px 27px 10px}
 .auto-tw-screen .auto-secondary{background:#fff!important;color:#06a84b}
 .auto-tw-screen button:disabled{cursor:not-allowed}
+
+/* RC6: Taiwan iOS add-friends landing, based on supplied 946x2048 reference. */
+.friend-growth-screen{display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.friend-growth-screen>.oa-mobile-header{flex:0 0 55px;height:55px;border-bottom:1px solid #d9dcdf}
+.friend-growth-screen>.oa-mobile-header strong{font-size:18px;font-weight:800}
+.friend-growth-screen>.oa-mobile-header button{background:transparent;border:0}
+.friend-growth-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.friend-growth-guide{display:flex;align-items:center;gap:8px;width:100%;border:0;border-bottom:1px solid #f0f0f0;background:white;color:#111;text-align:left;padding:16px 15px;min-height:49px;font-size:13px;font-weight:600}
+.friend-growth-guide>i{width:10px;height:10px;border-radius:50%;background:#06c755;flex:0 0 10px}
+.friend-growth-guide>svg{margin-left:auto;color:#777;flex:0 0 19px}
+.friend-growth-section{padding:25px 22px 7px}
+.friend-growth-section h3{margin:0 0 17px -7px;font-size:15px;font-weight:800;color:#111}
+.friend-growth-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:17px 15px;align-items:start}
+.friend-growth-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:0;border:0;background:#fff;gap:0;min-width:0;color:#30363a;cursor:pointer}
+.friend-growth-card>img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#f2f2f2}
+.friend-growth-card>strong{font-size:14px;line-height:1.35;font-weight:650;margin-top:8px;overflow-wrap:anywhere}
+.friend-growth-card>span{font-size:11.5px;line-height:1.5;color:#767e91;margin-top:3px;overflow-wrap:anywhere}
+.friend-growth-section+.friend-growth-section{padding-top:29px;padding-bottom:24px}
+.friend-growth-detail{padding:16px;display:flex;flex-direction:column;align-items:stretch;gap:14px;color:#333}
+.friend-growth-detail p,.friend-growth-detail li{font-size:13px;line-height:1.6;margin:0}
+.friend-growth-detail h3{font-size:16px;margin:0}
+.friend-unverified{font-size:12px!important;background:#f4f5f6;color:#666;padding:10px;border-radius:6px}
+.friend-detail-art{width:min(100%,200px);aspect-ratio:1;object-fit:contain;align-self:center;border-radius:8px}
+.friend-growth-detail a,.friend-practice a{color:#167c44}
+.friend-practice{min-width:0;display:flex;flex-direction:column;gap:12px}
+.friend-practice h2{font-size:19px;margin:0}
+.friend-practice>p{font-size:13px;line-height:1.6;margin:0;color:#67737a}
+.friend-practice-intro{display:grid;gap:8px}
+.friend-practice-intro h3{font-size:14px;margin:0 0 3px}
+.friend-practice-intro button{display:grid;gap:4px;text-align:left;background:#fff;border:1px solid #dce1e4;border-radius:7px;padding:11px;color:#30363a}
+.friend-practice-intro button small{color:#788187;font-size:12px}
+.friend-practice-label{display:grid;gap:6px;font-size:13px;font-weight:600}
+.friend-practice-label input,.friend-practice-label select{min-width:0;padding:10px;border:1px solid #d9dcdf;border-radius:5px;background:white;font-size:13px;color:#333;width:100%}
+.friend-qr-preview{display:flex;align-items:center;flex-direction:column;gap:9px;padding:20px;background:#fff;border:1px solid #e3e5e6;border-radius:8px;font-size:13px}
+.friend-qr-preview img{width:min(100%,180px);height:auto}
+.friend-qr-preview.poster{background:#06c755;color:#fff}
+.friend-qr-preview.poster>strong{font-size:20px;text-align:center}
+.friend-qr-preview small{font-size:11px;text-align:center}
+.friend-practice-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.friend-practice-buttons button,.friend-green-button{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border:1px solid #06c755;border-radius:5px;background:#fff;color:#06a84b;font-size:13px;font-weight:700;cursor:pointer}
+.friend-green-button{background:#06c755;color:#fff;width:100%}
+.friend-green-button:disabled{background:#e4e7e8;color:#92999d;border-color:#e4e7e8;cursor:default}
+.friend-coupon-preview{display:grid;gap:5px;border:1px solid #e0e3e6;border-radius:8px;padding:10px}
+.friend-coupon-preview img{width:100%;max-height:160px;object-fit:contain}
+.friend-follow-preview{display:grid;gap:10px;padding:16px;border:1px solid #e0e3e6;border-radius:8px}
+.friend-preview-account{display:flex;gap:10px;align-items:center;font-size:14px}
+.friend-preview-account>span{display:grid;place-items:center;border-radius:50%;background:#06c755;color:#fff;width:38px;height:38px;font-weight:700}
+.friend-welcome-preview{background:#a3bfdc;padding:10px;border-radius:8px;display:grid;gap:7px}
+.friend-welcome-preview p{background:#fff;border-radius:8px;padding:9px;margin:0;font-size:13px;overflow-wrap:anywhere}
+.friend-follow-preview>small{color:#737b80;font-size:11px}
