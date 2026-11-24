@@ -253,7 +253,7 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC2</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC3</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
@@ -479,11 +479,11 @@ export function MobileRichMenuSimulator() {
 
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
-          <h2>教學控制台</h2>
-          <p>首頁與群發入口依最新實機截圖；圖文選單後續步驟依官方規則建立，畫面仍待新版 App 核對。</p>
+          {page==='feature'&&activeFeature==='autoreply'?<><h2>自動回應訊息｜操作與測試</h2><p>先建立回應內容，點「下一步」設定標題、狀態與關鍵字，啟用後在右側輸入完整關鍵字測試。</p><div className="mobile-teaching-note"><strong>目前回應設定</strong><span>全域自動回應：{training.autoEnabled?'開啟':'關閉'}・已啟用規則：{training.rules.filter(r=>r.enabled).length} 筆</span>{training.rules.filter(r=>r.enabled).map(r=><span key={r.id}>{r.title||r.keyword||'自動回應'}：{(r.keywords??(r.keyword?[r.keyword]:[])).join('、')||'未登錄關鍵字'}</span>)}</div><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-autoreply/" target="_blank" rel="noreferrer">LINE 官方操作手冊</a><p className="auto-source-note">操作順序依官方 App 手冊；最新手機版畫面尚待核對。</p></>:page==='feature'&&activeFeature==='welcome'?<><h2>加入好友的歡迎訊息｜測試</h2><p>儲存歡迎訊息後，點「模擬加入好友」確認顧客端收到的內容。</p></>:page==='intro'||page==='step1'||page==='step2'||page==='step3'?<><h2>圖文選單｜操作與測試</h2><p>選擇版型、設定熱區動作及使用期間，並於顧客手機測試點擊結果。</p></>:<><h2>教學控制台</h2>
+          <p>首頁與群發入口依最新實機截圖；圖文選單後續步驟依官方規則建立，畫面仍待新版 App 核對。</p></>}
           {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
-          <CustomerPractice template={selectedTemplate} image={imageDataUrl} config={menuConfig}/>
-          <div className="mobile-teaching-note"><strong>跨功能練習</strong><span>先在歡迎訊息或自動回應儲存內容，再模擬加入好友或輸入關鍵字。圖文選單的文字動作也會觸發相同回應規則。</span></div>
+          <CustomerPractice template={page==='feature'&&['autoreply','welcome'].includes(activeFeature)?null:selectedTemplate} image={imageDataUrl} config={menuConfig} context={page==='feature'&&activeFeature==='autoreply'?'reply':page==='feature'&&activeFeature==='welcome'?'welcome':page==='intro'||page==='step1'||page==='step2'||page==='step3'?'menu':'general'}/>
+          {page==='home'&&<><div className="mobile-teaching-note"><strong>跨功能練習</strong><span>先在歡迎訊息或自動回應儲存內容，再模擬加入好友或輸入關鍵字。圖文選單的文字動作也會觸發相同回應規則。</span></div>
           <div className="mobile-teaching-note"><strong>實作練習・素材與回應設定</strong><span>完成條件以已儲存的本機資料判斷，不以點過按鈕計算；此區非 LINE 官方功能。</span>
             <div className="training-checkpoints">
               <button onClick={()=>openFeature('welcome')}>{training.welcomeEnabled&&training.welcome.some(x=>x.trim())?'✓':'○'} 歡迎訊息已設定</button>
@@ -493,7 +493,7 @@ export function MobileRichMenuSimulator() {
               <button onClick={()=>openFeature('stampcard')}>{assets.reward?.published?'✓':'○'} 公開模擬集點卡</button>
             </div>
           </div>
-          <div className="mobile-teaching-note"><strong>官方操作資料・畫面核對</strong><span>首頁及群發入口依實機圖；圖文選單後續、優惠券、圖文訊息與集點卡依官方功能規則模擬，最新手機子頁仍待核對。</span><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-sendmsg/" target="_blank" rel="noreferrer">訊息發送手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmenu/" target="_blank" rel="noreferrer">圖文選單手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmessage/" target="_blank" rel="noreferrer">圖文訊息版型</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-coupon/" target="_blank" rel="noreferrer">優惠券手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-stampcard/" target="_blank" rel="noreferrer">集點卡手冊</a></div>
+          <div className="mobile-teaching-note"><strong>官方操作資料・畫面核對</strong><span>首頁及群發入口依實機圖；圖文選單後續、優惠券、圖文訊息與集點卡依官方功能規則模擬，最新手機子頁仍待核對。</span><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-sendmsg/" target="_blank" rel="noreferrer">訊息發送手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmenu/" target="_blank" rel="noreferrer">圖文選單手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmessage/" target="_blank" rel="noreferrer">圖文訊息版型</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-coupon/" target="_blank" rel="noreferrer">優惠券手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-stampcard/" target="_blank" rel="noreferrer">集點卡手冊</a></div></>}
         </aside>
       </div>
     </div>
