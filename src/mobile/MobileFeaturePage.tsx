@@ -34,7 +34,7 @@ import {
   X
 } from 'lucide-react';
 
-import { readTraining, updateTraining, useTraining, welcomeText, type ReplyRule } from './trainingState';
+import { readTraining, updateTraining, useTraining, welcomeText, normalizeKeyword, ruleKeywords, ruleMessages, type ReplyRule } from './trainingState';
 
 import { AssetEditors } from './AssetEditors';
 export type FeatureKey =
@@ -165,39 +165,81 @@ function WelcomePage({ onBack }: { onBack: () => void }) {
 }
 
 function AutoReplyPage({ onBack }: { onBack: () => void }) {
-  const [page,setPage]=useState<'list'|'create'>('list');
   const config=useTraining();
+  const [page,setPage]=useState<'list'|'content'|'settings'|'keywords'>('list');
   const [editId,setEditId]=useState<string|null>(null);
-  const [filter,setFilter]=useState('已啟用');
-  const [mode,setMode]=useState<'關鍵字'|'預設回應'>('關鍵字');
-  const [keyword,setKeyword]=useState('營業時間');
-  const [reply,setReply]=useState('營業時間為 10:00～20:00');
+  const [title,setTitle]=useState('');
+  const [keywords,setKeywords]=useState<string[]>([]);
+  const [keyword,setKeyword]=useState('');
+  const [messages,setMessages]=useState<string[]>([]);
   const [enabled,setEnabled]=useState(true);
+  const [schedule,setSchedule]=useState(false);
+  const [start,setStart]=useState('');
+  const [end,setEnd]=useState('');
+  const [picker,setPicker]=useState(false);
+  const [preview,setPreview]=useState(false);
   const [toast,setToast]=useState('');
-  const flash=(t:string)=>{setToast(t);setTimeout(()=>setToast(''),1500);};
-  return (
-    <div className="oa-mobile-screen official-feature-screen">
-      {page==='list'?<>
-        <Header title="自動回應訊息" onBack={onBack}/>
-        <div className="official-feature-body">
-          <select className="official-status-select" value={filter} onChange={e=>setFilter(e.target.value)}><option>已啟用</option><option>未啟用</option><option>全部</option></select>
-          {config.rules.filter(r=>filter==='全部'||r.enabled===(filter==='已啟用')).map(r=><div className="official-list-button" key={r.id}><MessageCircle/><button onClick={()=>{setEditId(r.id);setKeyword(r.keyword);setReply(r.reply);setMode(r.mode);setEnabled(r.enabled);setPage('create');}}>{r.mode==='關鍵字'?r.keyword:'預設回應'}：{r.reply}</button><button aria-label="刪除回應" onClick={()=>{if(!updateTraining({rules:config.rules.filter(x=>x.id!==r.id)}))flash('儲存失敗');}}><Trash2 size={16}/></button></div>)}
-          {!config.rules.filter(r=>filter==='全部'||r.enabled===(filter==='已啟用')).length&&<div className="official-empty-center">尚無自動回應訊息</div>}
-        </div>
-        <div className="official-bottom-save"><button onClick={()=>{setEditId(null);setMode('關鍵字');setKeyword('');setReply('');setEnabled(true);setPage('create');}}>建立新訊息</button></div>
-      </>:<>
-        <Header title="建立" onBack={()=>setPage('list')} right={<button className="feature-text-link" onClick={()=>flash('預覽：'+reply)}>預覽</button>}/>
-        <div className="official-feature-body">
-          <section className="official-form-section"><h3>回應類型</h3><div className="official-segment"><button className={mode==='關鍵字'?'active':''} onClick={()=>setMode('關鍵字')}>關鍵字</button><button className={mode==='預設回應'?'active':''} onClick={()=>setMode('預設回應')}>預設回應</button></div></section>
-          {mode==='關鍵字'&&<section className="official-form-section"><h3>關鍵字</h3><input value={keyword} onChange={e=>setKeyword(e.target.value)}/><small>好友輸入此關鍵字時觸發回應。</small></section>}
-          <section className="official-form-section"><h3>訊息內容</h3><textarea value={reply} onChange={e=>setReply(e.target.value)}/></section>
-          <section className="official-form-section"><label className="official-switch-row"><span>啟用此自動回應</span><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/></label></section>
-        </div>
-        <div className="official-bottom-save"><button disabled={!reply.trim()||(mode==='關鍵字'&&!keyword.trim())} onClick={()=>{if(mode==='關鍵字'&&config.rules.some(r=>r.id!==editId&&r.mode===mode&&r.keyword.trim()===keyword.trim())){flash('關鍵字已存在');return;}const rule:ReplyRule={id:editId||String(Date.now()),mode,keyword:keyword.trim(),reply,enabled};if(updateTraining({rules:[...config.rules.filter(r=>r.id!==rule.id),rule]})){setFilter(enabled?'已啟用':'未啟用');setPage('list');flash('已儲存於本機');}else flash('儲存失敗');}}>儲存</button></div>
-      </>}
-      <Toast text={toast}/>
-    </div>
-  );
+  const flash=(t:string)=>setToast(t);
+  const fresh=()=>{setEditId(null);setTitle('');setKeywords([]);setKeyword('');setMessages([]);setEnabled(true);setSchedule(false);setStart('');setEnd('');setToast('');setPage('content');setPicker(true);};
+  const edit=(r:ReplyRule)=>{setEditId(r.id);setTitle(r.title||r.keyword||'自動回應');setKeywords(ruleKeywords(r));setKeyword('');setMessages(ruleMessages(r));setEnabled(r.enabled);setStart(r.start||'');setEnd(r.end||'');setSchedule(Boolean(r.start||r.end));setToast('');setPage('settings');};
+  const addKeyword=()=>{
+    const k=keyword.trim();
+    if(!k)return;
+    if(keywords.length>=51){flash('最多登錄 51 個關鍵字');return;}
+    if(/\p{Extended_Pictographic}/u.test(k)){flash('關鍵字不支援表情符號');return;}
+    if(keywords.some(x=>normalizeKeyword(x)===normalizeKeyword(k))){flash('關鍵字已登錄');return;}
+    setKeywords(v=>[...v,k]);setKeyword('');setToast('');
+  };
+  const contentValid=messages.length>0&&messages.every(x=>x.trim());
+  const valid=contentValid&&title.trim()&&(!schedule||(start&&end&&new Date(start)<new Date(end)));
+  const save=()=>{
+    if(!valid)return;
+    if(keyword.trim()){flash('請先完成關鍵字登錄');return;}
+    const rule:ReplyRule={id:editId||String(Date.now()),title:title.trim(),mode:keywords.length?'關鍵字':'預設回應',keyword:keywords[0]||'',keywords:[...keywords],reply:messages[0],messages:[...messages],enabled,start:schedule?start:undefined,end:schedule?end:undefined};
+    if(updateTraining({rules:[...config.rules.filter(r=>r.id!==rule.id),rule]})){setPage('list');setToast('');}else flash('本機儲存失敗');
+  };
+  return <div className="oa-mobile-screen auto-reply-screen">
+    {page==='list'?<>
+      <Header title="自動回應訊息" onBack={onBack}/>
+      <div className="auto-reply-body">
+        {!config.rules.length&&<div className="auto-empty">尚無自動回應訊息</div>}
+        {config.rules.map(r=><div className="auto-rule-row" key={r.id}>
+          <button onClick={()=>edit(r)}><strong>{r.title||r.keyword||'自動回應'}</strong><span>{ruleKeywords(r).length?'關鍵字（'+ruleKeywords(r).length+'）':'自動回應'}</span><small>{ruleMessages(r)[0]}</small></button>
+          <span className={r.enabled?'auto-on':'auto-off'}>{r.enabled?'開啟':'關閉'}</span><ChevronRight size={17}/>
+        </div>)}
+      </div>
+      <div className="auto-reply-footer"><button onClick={fresh}>建立新訊息</button></div>
+    </>:page==='content'?<>
+      <Header title={editId?'編輯':'建立'} onBack={()=>{setPage(editId?'settings':'list');setPicker(false);}} right={<button className="feature-text-link" onClick={()=>setPreview(true)}>預覽</button>}/>
+      <div className="auto-reply-body auto-compose">
+        {messages.map((m,i)=><div key={i} className="auto-message-card"><div className="auto-message-heading">文字<div><button aria-label="向上移動" disabled={i===0} onClick={()=>setMessages(v=>{const n=[...v];[n[i-1],n[i]]=[n[i],n[i-1]];return n;})}>⌃</button><button aria-label="向下移動" disabled={i===messages.length-1} onClick={()=>setMessages(v=>{const n=[...v];[n[i+1],n[i]]=[n[i],n[i+1]];return n;})}>⌄</button><button aria-label="刪除對話框" onClick={()=>setMessages(v=>v.filter((_,j)=>j!==i))}><X size={16}/></button></div></div>
+          <div className="auto-message-content"><textarea aria-label={'回應訊息 '+(i+1)} maxLength={500} placeholder="輸入文字" value={m} onChange={e=>setMessages(v=>v.map((x,j)=>j===i?e.target.value:x))}/><div className="auto-count">{m.length}/500</div><div className="auto-message-tools"><button onClick={()=>setMessages(v=>v.map((x,j)=>j===i?(x+'😊').slice(0,500):x))}>表情貼</button><button onClick={()=>setMessages(v=>v.map((x,j)=>j===i?(x+'[好友顯示名稱]').slice(0,500):x))}>加入好友的顯示名稱</button></div></div>
+        </div>)}
+        <button className="official-add-outline auto-add" disabled={messages.length>=5} onClick={()=>{setPicker(true);setToast('');}}><Plus size={18}/> 新增</button>
+        {toast&&<p role="alert" className="menu-practice-error">{toast}</p>}
+      </div>
+      <div className="auto-reply-footer"><button disabled={!contentValid} onClick={()=>{setPage('settings');setToast('');}}>下一步</button></div>
+      {picker&&<div className="broadcast-type-backdrop"><div className="broadcast-type-sheet"><div className="broadcast-type-sheet-head"><strong>選擇訊息類型</strong><button onClick={()=>setPicker(false)}><X size={27}/></button></div><div className="broadcast-type-grid">{['文字','照片','圖文訊息','多頁訊息','影片','優惠券','進階影片訊息','貼圖','語音訊息'].map((t,i)=><button key={t} style={{gridColumn:i%2+1,gridRow:Math.floor(i/2)+1}} onClick={()=>{setPicker(false);if(t==='文字')setMessages(v=>[...v,'']);else flash(t+'內容編輯尚待完成，請先使用文字。');}}><span className="broadcast-type-icon">{t==='文字'?<span style={{fontSize:28}}>T</span>:t==='照片'?<ImageIcon/>:t==='優惠券'?<Ticket/>:t==='貼圖'?<Smile/>:t==='語音訊息'?<Mic/>:t.includes('影片')?<PlaySquare/>:<MessageCircle/>}</span><strong>{t}</strong></button>)}</div></div></div>}
+    </>:page==='settings'?<>
+      <Header title={editId?'編輯':'設定'} onBack={()=>setPage(editId?'list':'content')} right={<button className="feature-text-link" onClick={()=>setPreview(true)}>預覽</button>}/>
+      <div className="auto-reply-body auto-settings">
+        <label className="auto-field">標題<input aria-label="標題" value={title} onChange={e=>setTitle(e.target.value)} placeholder="輸入標題"/></label>
+        <div className="auto-field"><span>狀態</span><label className="auto-switch"><input aria-label="狀態" type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/><span>{enabled?'開啟':'關閉'}</span></label></div>
+        {editId&&<button className="auto-link-row" onClick={()=>setPage('content')}>內容 <ChevronRight size={18}/></button>}
+        <div className="auto-field"><span>指定日期或時間</span><label className="auto-switch"><input type="checkbox" checked={schedule} onChange={e=>setSchedule(e.target.checked)}/><span>{schedule?'開啟':'關閉'}</span></label></div>
+        {schedule&&<div className="auto-dates"><label>開始日期或時間<input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)}/></label><label>結束日期或時間<input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)}/></label><small>本機教學採瀏覽器時區</small></div>}
+        <button className="auto-link-row" onClick={()=>{setPage('keywords');setToast('');}}>關鍵字（{keywords.length}）<ChevronRight size={18}/></button>
+        {keywords.length>0&&<div className="auto-chips">{keywords.map(k=><span key={k}>{k}</span>)}</div>}
+        {toast&&<p role="alert" className="menu-practice-error">{toast}</p>}
+      </div>
+      <div className="auto-reply-footer"><button disabled={!valid} onClick={save}>{editId?'儲存':enabled?'啟用':'儲存'}</button>{editId&&<button className="auto-delete" onClick={()=>{if(updateTraining({rules:config.rules.filter(r=>r.id!==editId)})){setPage('list');setToast('');}else flash('刪除失敗');}}>刪除</button>}</div>
+    </>:<>
+      <Header title="關鍵字" onBack={()=>{setKeyword('');setToast('');setPage('settings');}}/>
+      <div className="auto-reply-body"><form className="auto-keyword-entry" onSubmit={e=>{e.preventDefault();addKeyword();}}><input aria-label="輸入關鍵字" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="輸入關鍵字"/><button disabled={!keyword.trim()}>新增</button></form><div className="auto-chips">{keywords.map(k=><span key={k}>{k}<button aria-label={'刪除關鍵字 '+k} onClick={()=>setKeywords(v=>v.filter(x=>x!==k))}><X size={14}/></button></span>)}</div><small className="auto-keyword-count">{keywords.length}/51</small>{toast&&<p role="alert" className="menu-practice-error">{toast}</p>}</div>
+      <div className="auto-reply-footer"><button disabled={Boolean(keyword.trim())} onClick={()=>{setPage('settings');setToast('');}}>完成</button></div>
+    </>}
+    {preview&&<PreviewSheet title="預覽" onClose={()=>setPreview(false)} items={messages.map(x=>x.replaceAll('[好友顯示名稱]','{Nickname}'))}/>}
+  </div>;
 }
 
 function MultiPagePage({ onBack }: { onBack: () => void }) {
