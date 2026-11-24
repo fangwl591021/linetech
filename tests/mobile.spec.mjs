@@ -35,17 +35,17 @@ test('welcome and keyword rules update the customer simulator',async({page})=>{
   await expect(page.locator('.customer-chat')).toContainText('歡迎光臨');
   await page.locator('.oa-mobile-device .oa-mobile-header button').first().click();
   await page.locator('.mobile-home-grid > button').nth(2).click();
-  await page.getByRole('button',{name:'建立新訊息',exact:true}).click();
-  await page.locator('.broadcast-type-grid').getByRole('button',{name:'文字',exact:true}).click();
-  await page.getByLabel('回應訊息 1',{exact:true}).fill('請選擇服務');
-  await page.locator('.auto-reply-footer').getByRole('button',{name:'下一步',exact:true}).click();
+  await page.locator('.auto-reply-footer').getByRole('button',{name:'建立',exact:true}).click();
   await page.getByLabel('標題',{exact:true}).fill('預約服務');
-  await page.getByRole('button',{name:'關鍵字（0）'}).click();
+  await page.getByLabel('關鍵字回應',{exact:true}).check();
   await page.getByLabel('輸入關鍵字',{exact:true}).fill('預約');
   await page.getByRole('button',{name:'新增',exact:true}).click();
   await page.getByLabel('輸入關鍵字',{exact:true}).fill('BOOK');
   await page.getByRole('button',{name:'新增',exact:true}).click();
-  await page.getByRole('button',{name:'完成',exact:true}).click();
+  await page.getByRole('button',{name:'下一步',exact:true}).click();
+  await page.locator('.auto-compose').getByRole('button',{name:'新增',exact:true}).click();
+  await page.locator('.broadcast-type-grid').getByRole('button',{name:'文字',exact:true}).click();
+  await page.getByLabel('回應訊息 1',{exact:true}).fill('請選擇服務');
   await page.locator('.auto-reply-footer').getByRole('button',{name:'啟用',exact:true}).click();
   await expect(page.locator('.mobile-teaching-panel h2')).toContainText('自動回應訊息');
   await expect(page.locator('.training-checkpoints')).toHaveCount(0);
@@ -60,8 +60,7 @@ test('welcome and keyword rules update the customer simulator',async({page})=>{
   await page.locator('.customer-input button').click();
   await expect(page.locator('.customer-bubble.oa').filter({hasText:'請選擇服務'})).toHaveCount(2);
   await page.locator('.auto-rule-row > button').click();
-  await page.getByLabel('狀態',{exact:true}).uncheck();
-  await page.locator('.auto-reply-footer').getByRole('button',{name:'儲存',exact:true}).click();
+  await page.getByRole('button',{name:'停止使用',exact:true}).click();
   await page.getByLabel('顧客訊息').fill('預約');
   await page.locator('.customer-input button').click();
   await expect(page.locator('.customer-bubble.oa').filter({hasText:'請選擇服務'})).toHaveCount(2);
@@ -110,4 +109,23 @@ test('rich messages expose eight independent square layouts',async({page})=>{
   await page.locator('.rich-asset-grid button').last().click();
   await expect(page.locator('.rich-asset-preview span')).toHaveCount(6);
   await expect(page.locator('.asset-editor-footer button')).toBeDisabled();
+});
+
+test('auto reply saved inactive is not delivered, and activated default is delivered',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(2).click();
+  await page.locator('.auto-reply-footer').getByRole('button',{name:'建立',exact:true}).click();
+  await page.getByLabel('標題',{exact:true}).fill('預設招呼');
+  await page.getByRole('button',{name:'下一步',exact:true}).click();
+  await page.locator('.auto-compose').getByRole('button',{name:'新增',exact:true}).click();
+  await page.locator('.broadcast-type-grid').getByRole('button',{name:'文字',exact:true}).click();
+  await page.getByLabel('回應訊息 1',{exact:true}).fill('您好，請稍候');
+  await page.locator('.auto-reply-footer').getByRole('button',{name:'儲存',exact:true}).click();
+  await page.getByLabel('顧客訊息').fill('你好');
+  await page.locator('.customer-input button').click();
+  await expect(page.locator('.customer-bubble.oa').filter({hasText:'您好，請稍候'})).toHaveCount(0);
+  await page.locator('.auto-rule-row > button').click();
+  await page.getByRole('button',{name:'啟用已儲存訊息',exact:true}).click();
+  await page.getByLabel('顧客訊息').fill('你好');
+  await page.locator('.customer-input button').click();
+  await expect(page.locator('.customer-bubble.oa').filter({hasText:'您好，請稍候'})).toHaveCount(1);
 });
