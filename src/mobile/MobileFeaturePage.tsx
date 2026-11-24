@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   BarChart3,
   Bell,
@@ -80,7 +80,7 @@ const featureTitles: Record<FeatureKey, string> = {
 
 const messageTypes = ['文字','照片','圖文訊息','多頁訊息','影片','優惠券','進階影片訊息','貼圖','語音訊息','問卷調查'];
 
-function Header({ title, onBack, right }: { title: string; onBack: () => void; right?: React.ReactNode }) {
+function Header({ title, onBack, right }: { title: string; onBack: () => void; right?: ReactNode }) {
   return (
     <div className="oa-mobile-header feature-official-header">
       <button className="mobile-back" onClick={onBack}><ChevronLeft size={28}/></button>
