@@ -216,9 +216,34 @@ test('RC7 promotion link and button, ad and referral practice, landing scroll re
   await page.getByLabel('廣告標題').fill('教學廣告');
   await expect(page.locator('.friend-social-preview')).toContainText('教學廣告');
   await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  const scroll=page.locator('.friend-growth-scroll');
+  await page.locator('.friend-growth-card').nth(7).scrollIntoViewIfNeeded();
+  const before=await scroll.evaluate(e=>e.scrollTop);
+  expect(before).toBeGreaterThan(0);
   await page.locator('.friend-growth-card').nth(7).click();
   await expect(page.getByLabel('選擇好友介紹優惠券')).toBeVisible();
   await expect(page.getByRole('button',{name:'前往建立優惠券',exact:true})).toBeVisible();
   await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
-  await expect.poll(()=>page.locator('.friend-growth-scroll').evaluate(e=>e.scrollTop)).toBeGreaterThan(0);
+  await expect.poll(()=>page.locator('.friend-growth-scroll').evaluate(e=>e.scrollTop)).toBe(before);
+});
+
+test('RC7.1 actual wheel scroll reaches the final share-image setting with fixed header',async({page})=>{
+  await page.setViewportSize({width:1280,height:760});
+  await page.locator('.mobile-home-grid > button').nth(7).click();
+  const scroll=page.locator('.friend-growth-scroll');
+  const header=page.locator('.friend-growth-screen .oa-mobile-header');
+  const bounds=await header.boundingBox();
+  expect(bounds).not.toBeNull();
+  await expect(page.locator('.friend-growth-card')).toHaveCount(8);
+  await expect(page.locator('.friend-share-card')).toHaveCount(5);
+  expect(await scroll.evaluate(e=>e.scrollHeight-e.clientHeight)).toBeGreaterThan(500);
+  await scroll.hover();
+  for(let i=0;i<6;i++){await page.mouse.wheel(0,500);await page.waitForTimeout(80);}
+  await expect.poll(()=>scroll.evaluate(e=>Math.abs(e.scrollHeight-e.clientHeight-e.scrollTop))).toBeLessThan(3);
+  await expect(page.locator('.friend-setting-section button')).toBeInViewport({ratio:1});
+  expect(Math.abs((await header.boundingBox()).y-bounds.y)).toBeLessThan(2);
+  await page.locator('.friend-setting-section button').click();
+  await expect(page.getByLabel('上傳分享圖片',{exact:true})).toBeVisible();
+  await header.locator('button').click();
+  await expect.poll(()=>scroll.evaluate(e=>Math.abs(e.scrollHeight-e.clientHeight-e.scrollTop))).toBeLessThan(3);
 });

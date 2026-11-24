@@ -41,7 +41,7 @@ export function FriendExtraPractice({tool,onSelect,onCoupon}:{tool:FriendTool;on
  </>:tool==='template'||share?<>
  {tool==='template'&&<div className="friend-template-list">{samples.map(s=><button key={s} aria-pressed={data.message===s} onClick={()=>update({message:s})}>{s}</button>)}</div>}
  {tool==='email'&&<label className="friend-practice-label">主旨<input maxLength={100} value={data.subject} onChange={e=>update({subject:e.target.value})}/></label>}
- <label className="friend-practice-label">分享文案<textarea rows={4} maxLength={500} value={data.message} onChange={e=>update({message:e.target.value})}/></label>
+ <label className="friend-practice-label">分享文案<textarea aria-label="分享文案" rows={4} maxLength={500} value={data.message} onChange={e=>update({message:e.target.value})}/></label>
  <div className={'friend-social-preview '+(tool==='instagram'?'story':'')}><strong>{tool==='instagram'?'限時動態預覽':tool==='email'?data.subject:tool==='line'?'聊天室分享預覽':'分享預覽'}</strong>{imgPreview}<p>{data.message}</p><span>{demoUrl}</span></div>
  <div className="friend-practice-buttons"><button onClick={()=>void copy(tool==='email'?'主旨：'+data.subject+'\n\n'+sharedText:sharedText)}>複製分享文案</button><button onClick={()=>onSelect('image')}>選擇分享圖片</button>{share&&<button disabled={!data.message.trim()} onClick={()=>setShared(true)}>模擬分享</button>}</div>
  {shared&&<p role="status">已完成本機分享預覽，未對外傳送。</p>}

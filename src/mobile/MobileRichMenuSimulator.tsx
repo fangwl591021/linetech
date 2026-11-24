@@ -256,13 +256,13 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC7</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC7.1</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
 
       <div className="mobile-training-layout">
-        <section className="oa-mobile-device" aria-label="LINE Official Account 手機版模擬器">
+        <section className={"oa-mobile-device"+(page==="feature"&&activeFeature==="addfriend"?" friend-device":"")} aria-label="LINE Official Account 手機版模擬器">
           {page === 'home' && (
             <div className="oa-mobile-screen mobile-home-screen">
               <MobileHeader title="主頁" onMenu={() => setDrawerOpen(true)} />

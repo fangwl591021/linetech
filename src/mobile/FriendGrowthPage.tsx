@@ -27,18 +27,19 @@ export const titleFor=(tool:FriendTool)=>tool==='guide'?'增加好友人數所�
 export function FriendGrowthPage({tool,onSelect,onBack}:{tool:FriendTool|null;onSelect:(tool:FriendTool|null)=>void;onBack:()=>void}){
  const scrollRef=useRef<HTMLDivElement>(null),lastScroll=useRef(0);
  useLayoutEffect(()=>{if(tool===null&&scrollRef.current)scrollRef.current.scrollTop=lastScroll.current;},[tool]);
- const card=(item:typeof cards[number])=><button className="friend-growth-card" key={item.id} onClick={()=>onSelect(item.id)}><img src={artwork[item.id]} alt="" /><strong>{item.title}</strong><span>{item.description}</span></button>;
+ const openTool=(next:FriendTool)=>{if(scrollRef.current)lastScroll.current=scrollRef.current.scrollTop;onSelect(next);};
+ const card=(item:typeof cards[number])=><button className="friend-growth-card" key={item.id} onClick={()=>openTool(item.id)}><img src={artwork[item.id]} alt="" /><strong>{item.title}</strong><span>{item.description}</span></button>;
  if(tool==='stamp')return <AssetEditors kind="stampcard" onBack={()=>onSelect(null)}/>;
  return <div className="oa-mobile-screen friend-growth-screen">
  <div className="auto-tw-status friend-status" aria-hidden="true"><span>07:19</span><span>▂▄▆▇ 5G ▰</span></div>
  <div className="oa-mobile-header"><button aria-label="返回" onClick={()=>tool?onSelect(null):onBack()}><ChevronLeft size={28}/></button><strong>{tool?titleFor(tool):'增加好友人數'}</strong><span/></div>
- {tool===null?<div className="friend-growth-scroll" ref={scrollRef} onScroll={e=>{lastScroll.current=e.currentTarget.scrollTop;}}>
- <button className="friend-growth-guide" onClick={()=>onSelect('guide')}><span>增加好友人數所需的3大要素</span><i/><ChevronRight size={19}/></button>
+ {tool===null?<div key="friend-landing" className="friend-growth-scroll" ref={scrollRef} tabIndex={0} aria-label="增加好友人數可捲動內容" onScroll={e=>{lastScroll.current=e.currentTarget.scrollTop;}}>
+ <button className="friend-growth-guide" onClick={()=>openTool('guide')}><span>增加好友人數所需的3大要素</span><i/><ChevronRight size={19}/></button>
  <section className="friend-growth-section"><h3>店頭宣傳</h3><div className="friend-growth-grid">{cards.slice(0,2).map(card)}</div></section>
- <section className="friend-growth-section"><h3>線上宣傳</h3><div className="friend-growth-grid">{cards.slice(2).map(card)}</div><button className="friend-template-button" onClick={()=>onSelect('template')}>選用訊息範本</button></section>
- <section className="friend-share-section"><h3>透過社群及電子郵件分享</h3><div className="friend-share-grid">{sharePlatforms.map(item=><button key={item.id} className="friend-share-card" onClick={()=>onSelect(item.id)}><span><img src={extraFriendArt[item.id]} alt=""/></span><strong>{item.title}</strong></button>)}</div></section>
- <section className="friend-setting-section"><h3>設定</h3><button onClick={()=>onSelect('image')}>選擇分享用的圖片<ChevronRight size={19}/></button></section>
- </div>:<div className="friend-growth-scroll friend-growth-detail">
+ <section className="friend-growth-section"><h3>線上宣傳</h3><div className="friend-growth-grid">{cards.slice(2).map(card)}</div><button className="friend-template-button" onClick={()=>openTool('template')}>選用訊息範本</button></section>
+ <section className="friend-share-section"><h3>透過社群及電子郵件分享</h3><div className="friend-share-grid">{sharePlatforms.map(item=><button key={item.id} className="friend-share-card" onClick={()=>openTool(item.id)}><span><img src={extraFriendArt[item.id]} alt=""/></span><strong>{item.title}</strong></button>)}</div></section>
+ <section className="friend-setting-section"><h3>設定</h3><button onClick={()=>openTool('image')}>選擇分享用的圖片<ChevronRight size={19}/></button></section>
+ </div>:<div key="friend-detail" className="friend-growth-scroll friend-growth-detail">
  <p className="friend-unverified">Linetech 教學練習・此子頁尚未取得台灣實機畫面</p>
  {tool==='guide'?<><h3>增加好友的實作方向</h3><ol><li>提高行動條碼曝光。</li><li>提供好友加入的誘因。</li><li>搭配歡迎訊息建立後續互動。</li></ol><p>以上為教學整理，非官方三大要素頁面的逐字內容。</p></>:<>{tool in artwork&&<img className="friend-detail-art" src={artwork[tool as keyof typeof artwork]} alt="功能參考圖"/>}<h3>{titleFor(tool)}</h3><p>請在右側教學區完成「{titleFor(tool)}」的實作練習。</p></>}
  <a href={manual} target="_blank" rel="noreferrer">LINE 台灣官方操作手冊</a>
@@ -72,6 +73,6 @@ export function FriendGrowthPractice({tool,onSelect,onCoupon}:{tool:FriendTool|n
  {error&&<p role="alert">{error}</p>}
  </>}
  {tool&&tool!=='guide'&&(tool==='stamp'?assets.reward?.published:eligible&&qr)&&<div className="friend-follow-preview"><div className="friend-preview-account"><span>K</span><strong>康立全球智能系統</strong></div><button className="friend-green-button" disabled={followed} onClick={()=>setFollowed(true)}><UserPlus size={18}/>{followed?'已模擬加入好友':'模擬加入好友'}</button>{followed&&<div className="friend-welcome-preview">{training.welcomeEnabled?training.welcome.map((m,i)=><p key={i}>{welcomeText(m)}</p>):<p>歡迎訊息目前停用</p>}{tool==='coupon'&&coupon&&<p>已顯示優惠券：{coupon.name}</p>}</div>}<small>僅在瀏覽器模擬，不會增加真實好友人數。</small></div>}
- <div className="mobile-teaching-note"><strong>畫面來源與範圍</strong><span>八張宣傳圖卡與五個分享入口依使用者提供的台灣版實機圖重製；子頁與官方實際介面仍待核對。右側均為本機教學模擬。</span><a href={manual} target="_blank" rel="noreferrer">台灣官方手冊</a><a href="https://www.lycbiz.com/jp/manual/OfficialAccountManager/gain-friends/" target="_blank" rel="noreferrer">日本官方 App 流程參考</a></div>
+ <div className="mobile-teaching-note"><strong>畫面來源與範圍</strong><span>RC7.1：八張宣傳圖卡、五個分享入口、分享圖片設定已納入。左側手機可向下捲動至「設定」。子頁仍待實機核對，右側為本機教學模擬。</span><a href={manual} target="_blank" rel="noreferrer">台灣官方手冊</a><a href="https://www.lycbiz.com/jp/manual/OfficialAccountManager/gain-friends/" target="_blank" rel="noreferrer">日本官方 App 流程參考</a></div>
  </div>;
 }
