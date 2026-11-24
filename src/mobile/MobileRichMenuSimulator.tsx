@@ -256,7 +256,7 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC6</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC7</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
