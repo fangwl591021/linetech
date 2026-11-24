@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 
-type BroadcastPage = 'list' | 'create';
+type BroadcastPage = 'list' | 'create' | 'settings';
 type FormatType =
   | '文字'
   | '照片'
@@ -58,6 +58,12 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
   const [slots, setSlots] = useState<Array<FormatType | null>>([null, null, null]);
   const [activeSlot, setActiveSlot] = useState(0);
   const [toast, setToast] = useState('');
+  const [textValues, setTextValues] = useState<Record<number, string>>({});
+  const [audience, setAudience] = useState<'所有好友' | '依屬性篩選'>('所有好友');
+  const [scheduled, setScheduled] = useState(false);
+  const [postToFeed, setPostToFeed] = useState(false);
+  const [limitEnabled, setLimitEnabled] = useState(false);
+  const [limitCount, setLimitCount] = useState('50');
 
   const flash = (message: string) => {
     setToast(message);
@@ -111,7 +117,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
             <button onClick={startCreate}>建立新訊息</button>
           </div>
         </>
-      ) : (
+      ) : page === 'create' ? (
         <>
           <div className="broadcast-latest-header">
             <button onClick={() => setPage('list')}><ChevronLeft size={31}/></button>
@@ -119,30 +125,57 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
             <button className="broadcast-latest-preview-link" onClick={() => setPreviewOpen(true)}>預覽</button>
           </div>
 
-          <div className="broadcast-slot-area">
+          <div className="broadcast-slot-area latest-editor">
             {slots.map((slot, index) => {
               const enabled = index === 0 || Boolean(slots[index - 1]);
+              const isTextEditor = slot === '文字';
               return (
                 <div className="broadcast-slot-row" key={index}>
                   <div className="broadcast-slot-avatar">K</div>
-                  <button
-                    className={`broadcast-slot-card ${enabled ? 'enabled' : 'disabled'} ${activeSlot === index && pickerOpen ? 'active' : ''}`}
-                    disabled={!enabled}
-                    onClick={() => openSlot(index)}
-                  >
+                  <div className={`broadcast-slot-card ${enabled ? 'enabled' : 'disabled'} ${activeSlot === index && pickerOpen ? 'active' : ''} ${isTextEditor ? 'editor-open' : ''}`}>
                     {slot ? (
-                      <div className="broadcast-slot-selected">
-                        <FormatIcon type={slot}/>
-                        <strong>{slot}</strong>
-                        <span>點此變更</span>
-                      </div>
+                      isTextEditor ? (
+                        <div className="broadcast-text-editor">
+                          <div className="broadcast-text-editor-head">
+                            <strong>文字</strong>
+                            <button onClick={() => openSlot(index)}>變更</button>
+                          </div>
+                          <textarea
+                            maxLength={500}
+                            placeholder="輸入文字"
+                            value={textValues[index] || ''}
+                            onChange={e => setTextValues(values => ({ ...values, [index]: e.target.value }))}
+                          />
+                          <div className="broadcast-text-editor-foot">
+                            <button onClick={() => flash('表情貼選擇（教學模擬）')}><Smile size={15}/> 表情貼</button>
+                            <span>{(textValues[index] || '').length}/500</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <button className="broadcast-slot-selected-btn" onClick={() => openSlot(index)}>
+                          <FormatIcon type={slot}/>
+                          <strong>{slot}</strong>
+                          <span>點此變更</span>
+                        </button>
+                      )
                     ) : (
-                      <span className="broadcast-slot-add"><Plus size={22}/> 新增</span>
+                      <button
+                        className="broadcast-slot-add-button"
+                        disabled={!enabled}
+                        onClick={() => openSlot(index)}
+                      >
+                        <span className="broadcast-slot-add"><Plus size={22}/> 新增</span>
+                      </button>
                     )}
-                  </button>
+                  </div>
                 </div>
               );
             })}
+          </div>
+
+          <div className="broadcast-create-latest-bottom">
+            <button className="broadcast-next-latest" disabled={!slots[0]} onClick={() => setPage('settings')}>下一步</button>
+            <button className="broadcast-save-latest" disabled={!slots[0]} onClick={() => flash('已儲存草稿（教學模擬）')}>儲存草稿</button>
           </div>
 
           {pickerOpen && (
@@ -176,11 +209,70 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                 <div className="broadcast-preview-body">
                   {slots.every(slot => !slot)
                     ? <span>尚未新增訊息</span>
-                    : slots.filter(Boolean).map((slot, index) => <div className="broadcast-preview-chip" key={index}>{slot}</div>)}
+                    : slots.map((slot, index) => slot ? (
+                      <div className="broadcast-preview-chip" key={index}>
+                        {slot === '文字' ? (textValues[index] || '輸入文字') : slot}
+                      </div>
+                    ) : null)}
                 </div>
               </div>
             </div>
           )}
+        </>
+      ) : (
+        <>
+          <div className="broadcast-latest-header">
+            <button onClick={() => setPage('create')}><ChevronLeft size={31}/></button>
+            <strong>群發訊息設定</strong>
+            <span/>
+          </div>
+
+          <div className="broadcast-settings-latest">
+            <section>
+              <h3>傳送時間</h3>
+              <label className="broadcast-radio-latest">
+                <input type="radio" checked={!scheduled} onChange={() => setScheduled(false)}/>
+                <span>立即傳送</span>
+              </label>
+              <label className="broadcast-radio-latest">
+                <input type="radio" checked={scheduled} onChange={() => setScheduled(true)}/>
+                <span>預約傳送</span>
+              </label>
+              {scheduled && <input className="broadcast-datetime-latest" type="datetime-local"/>}
+            </section>
+
+            <section>
+              <h3>群發訊息設定</h3>
+              <label className="broadcast-switch-latest">
+                <span>同步張貼至貼文串</span>
+                <input type="checkbox" checked={postToFeed} onChange={e => setPostToFeed(e.target.checked)}/>
+              </label>
+              <label className="broadcast-switch-latest">
+                <span>指定群發訊息則數</span>
+                <input type="checkbox" checked={limitEnabled} onChange={e => setLimitEnabled(e.target.checked)}/>
+              </label>
+              {limitEnabled && <input className="broadcast-count-latest" type="number" min="1" value={limitCount} onChange={e => setLimitCount(e.target.value)}/>}
+            </section>
+
+            <section>
+              <h3>傳送對象</h3>
+              <label className="broadcast-radio-latest">
+                <input type="radio" checked={audience === '所有好友'} onChange={() => setAudience('所有好友')}/>
+                <span>所有好友</span>
+              </label>
+              <label className="broadcast-radio-latest">
+                <input type="radio" checked={audience === '依屬性篩選'} onChange={() => setAudience('依屬性篩選')}/>
+                <span>依屬性篩選</span>
+              </label>
+              {audience === '依屬性篩選' && <div className="broadcast-official-filter-help">依屬性篩選需符合 LINE 官方目標好友數條件。</div>}
+            </section>
+          </div>
+
+          <div className="broadcast-settings-latest-bottom">
+            <button onClick={() => flash('已儲存草稿（教學模擬）')}>儲存草稿</button>
+            <button onClick={() => flash('傳送測試訊息（教學模擬）')}>傳送測試訊息</button>
+            <button className="send" onClick={() => { flash('群發訊息已傳送（教學模擬）'); window.setTimeout(() => setPage('list'), 800); }}>傳送</button>
+          </div>
         </>
       )}
 
