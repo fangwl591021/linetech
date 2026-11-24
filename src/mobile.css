@@ -449,3 +449,7 @@ button.official-list-button{cursor:pointer}
 .customer-asset-panel p,.customer-asset-panel small{font-size:12px}
 .customer-asset-panel button{border:1px solid #06c755;border-radius:5px;padding:10px;background:white;color:#13853e;font-weight:700}
 .customer-asset-panel button:disabled{background:#eee;color:#aaa;border-color:#ccc}
+
+.training-checkpoints{display:grid;gap:6px;margin-top:7px}
+.training-checkpoints button{background:#fff;border:1px solid #d5dfd8;color:#354c3e;font-size:12px;text-align:left;padding:9px;border-radius:5px}
+.mobile-teaching-note>a{font-size:12px;color:#187c44;text-decoration:underline}
