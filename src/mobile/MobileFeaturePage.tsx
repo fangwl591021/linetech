@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Gift,
   Image as ImageIcon,
+  Info,
   Link2,
   MessageCircle,
   MousePointer2,
