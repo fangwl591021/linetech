@@ -88,7 +88,7 @@ export function MobileRichMenuSimulator() {
   const [imageDataUrl, setImageDataUrl] = useState('');
   const [imageName, setImageName] = useState('');
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(false);\n  const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const selectedTemplate = useMemo(
@@ -148,6 +148,25 @@ export function MobileRichMenuSimulator() {
     setEditingPresetId(null);
     setPresetIndustry('全部');
     setPresetOpen(true);
+  };
+
+  const applyOfficialPreset = () => {
+    const officialTemplate = templates.find(t => t.id === 'compact-3') ?? templates[0];
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="405" viewBox="0 0 1200 405">
+      <rect width="1200" height="405" fill="#f5f6f7"/>
+      <rect x="8" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
+      <rect x="408" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
+      <rect x="808" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
+      <text x="200" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 A</text>
+      <text x="600" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 B</text>
+      <text x="1000" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 C</text>
+    </svg>`;
+    setTemplateId(officialTemplate.id);
+    setImageDataUrl(`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`);
+    setImageName('LINE 官方預設圖片（教學模擬）');
+    setMenuLabels(['預設圖片 A','預設圖片 B','預設圖片 C']);
+    setDone(false);
+    setOfficialPresetOpen(false);
   };
 
   const openPresetEditor = () => {
@@ -282,8 +301,9 @@ export function MobileRichMenuSimulator() {
                   <li>圖片尺寸（大）：2500px × 1686px</li>
                   <li>圖片尺寸（小）：2500px × 843px</li>
                 </ul>
-                <button className="mobile-preset-btn" onClick={openPresetLibrary}>選擇預設圖片</button>
-                <div className="linetech-extension-note">Linetech 擴充：選原創範本後，可修改品牌名稱、品牌色與每一格文字，再套用到 LINE 圖文選單。</div>
+                <button className="mobile-preset-btn" onClick={() => setOfficialPresetOpen(true)}>選擇預設圖片</button>
+                <button className="mobile-linetech-btn" onClick={openPresetLibrary}>Linetech 原創範本庫</button>
+                <div className="official-mobile-note">「選擇預設圖片」為 LINE 官方流程；下方 Linetech 圖庫為教學擴充，兩者分開呈現。</div>
                 {imageName && <div className="mobile-file-status">已選擇：{imageName}</div>}
                 {menuLabels.length > 0 && <div className="linetech-label-summary">選單文字：{menuLabels.join('・')}</div>}
               </div>
@@ -311,6 +331,25 @@ export function MobileRichMenuSimulator() {
                 <div className="mobile-picker-actions">
                   <button className="select" disabled={!pendingTemplateId} onClick={applyTemplate}>選擇</button>
                   <button className="cancel" onClick={() => setPickerOpen(false)}>取消</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {officialPresetOpen && (
+            <div className="mobile-picker-overlay official-preset-overlay">
+              <div className="official-preset-sheet">
+                <div className="mobile-picker-head"><strong>選擇預設圖片</strong><button onClick={() => setOfficialPresetOpen(false)}><X size={25} /></button></div>
+                <div className="official-preset-note">LINE 官方預設圖片功能・教學模擬畫面</div>
+                <div className="official-preset-card">
+                  <div className="official-preset-thumb">
+                    <span>預設圖片 A</span><span>預設圖片 B</span><span>預設圖片 C</span>
+                  </div>
+                  <p>選擇後會自動帶入對應版型，下一步再設定各區塊動作與顯示期間。</p>
+                </div>
+                <div className="mobile-picker-actions">
+                  <button className="select" onClick={applyOfficialPreset}>選擇</button>
+                  <button className="cancel" onClick={() => setOfficialPresetOpen(false)}>取消</button>
                 </div>
               </div>
             </div>
@@ -364,7 +403,7 @@ export function MobileRichMenuSimulator() {
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
           <h2>手機版圖文選單</h2>
-          <p>這一版依你提供的 2026 LINE Official Account App 實際畫面製作，讓學員先建立操作肌肉記憶。</p>
+          <p>已依 2026/11 LINE 官方最新功能基準更新：官方預設圖片與 Linetech 原創圖庫分離，並保留下一步動作設定流程。</p>
           <ol>
             <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
             <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
