@@ -155,7 +155,7 @@ test('Taiwan add-friends reference cards, contextual preview and QR generation',
   await expect(page.locator('.friend-growth-screen .oa-mobile-header strong')).toHaveText('增加好友人數');
   await expect(page.locator('.friend-growth-guide')).toContainText('增加好友人數所需的3大要素');
   await expect(page.locator('.friend-growth-section h3')).toHaveText(['店頭宣傳','線上宣傳']);
-  await expect(page.locator('.friend-growth-card strong')).toHaveText(['建立海報','建立集點卡','建立加入好友行動條碼','建立優惠券行動條碼']);
+  await expect(page.locator('.friend-growth-card strong')).toHaveText(['建立海報','建立集點卡','建立加入好友行動條碼','建立優惠券行動條碼','建立加好友廣告','建立網址','建立按鍵','建立好友推薦優惠券']);
   await expect.poll(async()=>page.locator('.friend-growth-card img').evaluateAll(imgs=>imgs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
   await expect(page.locator('.customer-phone')).toHaveCount(0);
   await page.locator('.friend-growth-card').nth(2).click();
@@ -176,4 +176,49 @@ test('Taiwan add-friends reference cards, contextual preview and QR generation',
   await page.locator('.friend-growth-card').nth(3).click();
   await expect(page.locator('.friend-practice-label select')).toBeVisible();
   await expect(page.getByRole('button',{name:'前往建立優惠券',exact:true})).toBeVisible();
+});
+
+test('RC7 remaining artwork, three-column shares, editable message and saved image',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(7).click();
+  await expect(page.locator('.friend-share-card strong')).toHaveText(['LINE','Instagram 限時動態','Facebook','X（舊稱：Twitter）','電子郵件']);
+  await expect.poll(async()=>page.locator('.friend-share-card img').evaluateAll(imgs=>imgs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
+  await page.getByRole('button',{name:'選擇分享用的圖片',exact:true}).first().click();
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH1sAAAAASUVORK5CYII=','base64');
+  await page.getByLabel('上傳分享圖片',{exact:true}).setInputFiles({name:'demo.png',mimeType:'image/png',buffer:png});
+  await expect(page.getByAltText('分享圖片預覽')).toBeVisible();
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-template-button').click();
+  await page.getByLabel('分享文案',{exact:true}).fill('RC7課堂分享');
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-share-card').nth(1).click();
+  await expect(page.locator('.friend-social-preview')).toContainText('RC7課堂分享');
+  await expect(page.getByAltText('分享圖片預覽')).toBeVisible();
+  await page.getByRole('button',{name:'模擬分享',exact:true}).click();
+  await expect(page.locator('.friend-extra-practice [role=status]')).toContainText('未對外傳送');
+  await page.reload();
+  await page.locator('.mobile-home-grid > button').nth(7).click();
+  await page.locator('.friend-share-card').nth(4).click();
+  await expect(page.getByLabel('分享文案',{exact:true})).toHaveValue('RC7課堂分享');
+  await expect(page.getByAltText('分享圖片預覽')).toBeVisible();
+});
+test('RC7 promotion link and button, ad and referral practice, landing scroll restore',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(7).click();
+  await page.locator('.friend-growth-card').nth(5).click();
+  await page.getByLabel('活動名稱（教學用）').fill('夏日活動');
+  await expect(page.getByLabel('教學網址',{exact:true})).toHaveValue('https://example.invalid/linetech/friend?campaign='+encodeURIComponent('夏日活動'));
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(6).click();
+  await expect(page.getByLabel('按鍵 HTML')).toHaveValue(/https:\/\/example\.invalid/);
+  await page.getByRole('button',{name:'加入好友',exact:true}).click();
+  await expect(page.locator('.friend-welcome-preview')).toBeVisible();
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(4).click();
+  await page.getByLabel('廣告標題').fill('教學廣告');
+  await expect(page.locator('.friend-social-preview')).toContainText('教學廣告');
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await page.locator('.friend-growth-card').nth(7).click();
+  await expect(page.getByLabel('選擇好友介紹優惠券')).toBeVisible();
+  await expect(page.getByRole('button',{name:'前往建立優惠券',exact:true})).toBeVisible();
+  await page.locator('.friend-growth-screen .oa-mobile-header button').first().click();
+  await expect.poll(()=>page.locator('.friend-growth-scroll').evaluate(e=>e.scrollTop)).toBeGreaterThan(0);
 });
