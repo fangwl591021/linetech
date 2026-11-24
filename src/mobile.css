@@ -19,3 +19,26 @@
 .mobile-bottom-tabs.current-four button{font-size:0}
 .mobile-bottom-tabs.current-four svg{width:29px;height:29px}
 .mobile-bottom-tabs.current-four .badge-tab b{top:5px;right:21px}
+
+/* 2026-11 mobile home stacking fix:
+   the promo banner belongs after the 4x4 shortcut grid; only the bottom nav remains sticky. */
+.oa-mobile-screen{padding-bottom:0}
+.mobile-home-grid{padding:0 15px 10px}
+.mobile-home-banner{
+  position:relative;
+  left:auto;
+  right:auto;
+  bottom:auto;
+  width:100%;
+  height:82px;
+  margin:0;
+  z-index:2;
+}
+.mobile-bottom-tabs.current-four{
+  position:sticky;
+  left:auto;
+  right:auto;
+  bottom:0;
+  width:100%;
+  z-index:12;
+}
