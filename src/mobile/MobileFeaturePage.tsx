@@ -34,6 +34,8 @@ import {
   X
 } from 'lucide-react';
 
+import { readTraining, updateTraining, useTraining, welcomeText, type ReplyRule } from './trainingState';
+
 export type FeatureKey =
   | 'welcome'
   | 'autoreply'
@@ -121,14 +123,18 @@ function FeatureRouter({ feature, onBack }: Props) {
 }
 
 function WelcomePage({ onBack }: { onBack: () => void }) {
-  const [messages, setMessages] = useState(['歡迎加入好友！']);
+  const [messages, setMessages] = useState(()=>readTraining().welcome);
+  const config=useTraining();
+  const [settingsOpen,setSettingsOpen]=useState(false);
+  const insert=(i:number,token:string)=>setMessages(v=>v.map((x,idx)=>idx===i?(x+token).slice(0,500):x));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [toast,setToast]=useState('');
   const flash=(t:string)=>{setToast(t);setTimeout(()=>setToast(''),1500);};
   const add=(type:string)=>{
     if(messages.length>=5){flash('最多可設定 5 則歡迎訊息');return;}
-    setMessages(v=>[...v,type==='文字'?'':'['+type+']']);
+    if(type!=='文字'){flash('此格式尚未完成，先使用文字練習');return;}
+    setMessages(v=>[...v,'']);
     setPickerOpen(false);
   };
   return (
@@ -141,16 +147,17 @@ function WelcomePage({ onBack }: { onBack: () => void }) {
             <div className="welcome-message-card">
               <div className="welcome-message-head"><strong>訊息 {i+1}</strong><button onClick={()=>setMessages(v=>v.filter((_,idx)=>idx!==i))}><X size={17}/></button></div>
               <textarea maxLength={500} value={m} onChange={e=>setMessages(v=>v.map((x,idx)=>idx===i?e.target.value:x))}/>
-              <div className="welcome-tools"><button><Smile size={15}/> 表情貼</button><button onClick={()=>flash('插入好友顯示名稱')}>好友顯示名稱</button><button onClick={()=>flash('插入帳號名稱')}>帳號名稱</button><span>{m.length}/500</span></div>
+              <div className="welcome-tools"><button onClick={()=>insert(i,'😊')}><Smile size={15}/> 表情貼</button><button onClick={()=>insert(i,'[好友顯示名稱]')}>好友顯示名稱</button><button onClick={()=>insert(i,'[帳號名稱]')}>帳號名稱</button><span>{m.length}/500</span></div>
             </div>
           </section>
         ))}
         <button className="official-add-outline" disabled={messages.length>=5} onClick={()=>setPickerOpen(true)}><Plus size={19}/> 新增</button>
-        <button className="official-sub-link" onClick={()=>flash('回應設定：可開啟/關閉歡迎訊息')}>回應設定</button>
+        <button className="official-sub-link" onClick={()=>setSettingsOpen(v=>!v)}>回應設定</button>
+        {settingsOpen&&<section className="official-form-section"><label className="official-switch-row"><span>加入好友的歡迎訊息</span><input type="checkbox" checked={config.welcomeEnabled} onChange={e=>{if(!updateTraining({welcomeEnabled:e.target.checked}))flash('儲存失敗');}}/></label></section>}
       </div>
-      <div className="official-bottom-save"><button onClick={()=>flash('已儲存歡迎訊息')}>儲存</button></div>
+      <div className="official-bottom-save"><button disabled={!messages.length||messages.some(x=>!x.trim())} onClick={()=>flash(updateTraining({welcome:messages})?'歡迎訊息已儲存於本機':'儲存失敗')}>儲存</button></div>
       {pickerOpen && <TypePicker title="選擇訊息類型" onClose={()=>setPickerOpen(false)} onSelect={add}/>}
-      {previewOpen && <PreviewSheet title="預覽" onClose={()=>setPreviewOpen(false)} items={messages}/>}
+      {previewOpen && <PreviewSheet title="預覽" onClose={()=>setPreviewOpen(false)} items={messages.map(welcomeText)}/>}
       <Toast text={toast}/>
     </div>
   );
@@ -158,6 +165,9 @@ function WelcomePage({ onBack }: { onBack: () => void }) {
 
 function AutoReplyPage({ onBack }: { onBack: () => void }) {
   const [page,setPage]=useState<'list'|'create'>('list');
+  const config=useTraining();
+  const [editId,setEditId]=useState<string|null>(null);
+  const [filter,setFilter]=useState('已啟用');
   const [mode,setMode]=useState<'關鍵字'|'預設回應'>('關鍵字');
   const [keyword,setKeyword]=useState('營業時間');
   const [reply,setReply]=useState('營業時間為 10:00～20:00');
@@ -169,10 +179,11 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
       {page==='list'?<>
         <Header title="自動回應訊息" onBack={onBack}/>
         <div className="official-feature-body">
-          <div className="official-status-select">已啟用 <ChevronDown size={17}/></div>
-          <div className="official-empty-center">尚無自動回應訊息</div>
+          <select className="official-status-select" value={filter} onChange={e=>setFilter(e.target.value)}><option>已啟用</option><option>未啟用</option><option>全部</option></select>
+          {config.rules.filter(r=>filter==='全部'||r.enabled===(filter==='已啟用')).map(r=><div className="official-list-button" key={r.id}><MessageCircle/><button onClick={()=>{setEditId(r.id);setKeyword(r.keyword);setReply(r.reply);setMode(r.mode);setEnabled(r.enabled);setPage('create');}}>{r.mode==='關鍵字'?r.keyword:'預設回應'}：{r.reply}</button><button aria-label="刪除回應" onClick={()=>{if(!updateTraining({rules:config.rules.filter(x=>x.id!==r.id)}))flash('儲存失敗');}}><Trash2 size={16}/></button></div>)}
+          {!config.rules.filter(r=>filter==='全部'||r.enabled===(filter==='已啟用')).length&&<div className="official-empty-center">尚無自動回應訊息</div>}
         </div>
-        <div className="official-bottom-save"><button onClick={()=>setPage('create')}>建立新訊息</button></div>
+        <div className="official-bottom-save"><button onClick={()=>{setEditId(null);setMode('關鍵字');setKeyword('');setReply('');setEnabled(true);setPage('create');}}>建立新訊息</button></div>
       </>:<>
         <Header title="建立" onBack={()=>setPage('list')} right={<button className="feature-text-link" onClick={()=>flash('預覽：'+reply)}>預覽</button>}/>
         <div className="official-feature-body">
@@ -181,7 +192,7 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
           <section className="official-form-section"><h3>訊息內容</h3><textarea value={reply} onChange={e=>setReply(e.target.value)}/></section>
           <section className="official-form-section"><label className="official-switch-row"><span>啟用此自動回應</span><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/></label></section>
         </div>
-        <div className="official-bottom-save"><button onClick={()=>{flash('已儲存自動回應');setTimeout(()=>setPage('list'),500)}}>儲存</button></div>
+        <div className="official-bottom-save"><button disabled={!reply.trim()||(mode==='關鍵字'&&!keyword.trim())} onClick={()=>{if(mode==='關鍵字'&&config.rules.some(r=>r.id!==editId&&r.mode===mode&&r.keyword.trim()===keyword.trim())){flash('關鍵字已存在');return;}const rule:ReplyRule={id:editId||String(Date.now()),mode,keyword:keyword.trim(),reply,enabled};if(updateTraining({rules:[...config.rules.filter(r=>r.id!==rule.id),rule]})){setFilter(enabled?'已啟用':'未啟用');setPage('list');flash('已儲存於本機');}else flash('儲存失敗');}}>儲存</button></div>
       </>}
       <Toast text={toast}/>
     </div>
@@ -381,9 +392,11 @@ function LatestInfoPage({ onBack }: { onBack: () => void }) {
 function SettingsPage({ onBack }: { onBack: () => void }) {
   const [sub,setSub]=useState<string|null>(null);
   const [chat,setChat]=useState(true);
-  const [welcome,setWelcome]=useState(true);
+  const config=useTraining();
+  const welcome=config.welcomeEnabled;
+  const setWelcome=(value:boolean)=>updateTraining({welcomeEnabled:value});
   const [webhook,setWebhook]=useState(false);
-  if(sub==='回應設定') return <div className="oa-mobile-screen official-feature-screen"><Header title="回應設定" onBack={()=>setSub(null)}/><div className="official-feature-body"><section className="official-form-section"><label className="official-switch-row"><span>聊天</span><input type="checkbox" checked={chat} onChange={e=>setChat(e.target.checked)}/></label><label className="official-switch-row"><span>加入好友的歡迎訊息</span><input type="checkbox" checked={welcome} onChange={e=>setWelcome(e.target.checked)}/></label><label className="official-switch-row"><span>Webhook</span><input type="checkbox" checked={webhook} onChange={e=>setWebhook(e.target.checked)}/></label></section></div></div>;
+  if(sub==='回應設定') return <div className="oa-mobile-screen official-feature-screen"><Header title="回應設定" onBack={()=>setSub(null)}/><div className="official-feature-body"><section className="official-form-section"><label className="official-switch-row"><span>聊天</span><input type="checkbox" checked={chat} onChange={e=>setChat(e.target.checked)}/></label><label className="official-switch-row"><span>加入好友的歡迎訊息</span><input type="checkbox" checked={welcome} onChange={e=>setWelcome(e.target.checked)}/></label><label className="official-switch-row"><span>自動回應訊息</span><input type="checkbox" checked={config.autoEnabled} onChange={e=>updateTraining({autoEnabled:e.target.checked})}/></label><label className="official-switch-row"><span>Webhook（模擬）</span><input type="checkbox" checked={webhook} onChange={e=>setWebhook(e.target.checked)}/></label></section></div></div>;
   return <div className="oa-mobile-screen official-feature-screen">
     <Header title="設定" onBack={onBack}/>
     <div className="official-feature-body">
