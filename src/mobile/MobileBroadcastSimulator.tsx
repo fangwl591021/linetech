@@ -13,6 +13,17 @@ import {
 } from 'lucide-react';
 
 type BroadcastPage = 'list' | 'create' | 'settings';
+type RecordStatus = '已預約傳送' | '草稿' | '已傳送';
+interface BroadcastRecord {
+  id: string; status: RecordStatus; slots: Array<FormatType | null>;
+  values: Record<number,string>; photos: Record<number,string>; scheduled: boolean;
+  scheduleTime: string; audience: '所有好友' | '依屬性篩選'; postToFeed: boolean;
+  limitEnabled: boolean; limitCount: string; updatedAt: string;
+}
+const RECORD_KEY = 'linetech.mobile.broadcast.v2';
+function readRecords(): BroadcastRecord[] {
+  try { const value = JSON.parse(localStorage.getItem(RECORD_KEY) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; }
+}
 type FormatType =
   | '文字'
   | '照片'
@@ -52,7 +63,11 @@ const formatRows: Array<Array<{ type: FormatType; icon: typeof MessageCircle }>>
 
 export function MobileBroadcastSimulator({ onBack }: Props) {
   const [page, setPage] = useState<BroadcastPage>('list');
-  const [status, setStatus] = useState('已預約傳送');
+  const [status, setStatus] = useState<RecordStatus>('已預約傳送');
+  const [records, setRecords] = useState<BroadcastRecord[]>(readRecords);
+  const [recordId,setRecordId] = useState<string | null>(null);
+  const [photos,setPhotos] = useState<Record<number,string>>({});
+  const [scheduleTime,setScheduleTime] = useState('');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slots, setSlots] = useState<Array<FormatType | null>>([null, null, null]);
@@ -71,6 +86,8 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
   };
 
   const startCreate = () => {
+    setRecordId(null); setSlots([null,null,null]); setTextValues({}); setPhotos({});
+    setScheduled(false); setScheduleTime(''); setAudience('所有好友'); setPostToFeed(false); setLimitEnabled(false); setLimitCount('50');
     setPage('create');
     setActiveSlot(0);
     setPickerOpen(true);
@@ -78,14 +95,44 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
 
   const chooseFormat = (type: FormatType) => {
     setSlots(current => current.map((slot, index) => index === activeSlot ? type : slot));
+    setTextValues(v=>({...v,[activeSlot]:''}));
+    setPhotos(v=>{const next={...v};delete next[activeSlot];return next;});
     setPickerOpen(false);
-    flash(`已選擇「${type}」`);
   };
 
   const openSlot = (index: number) => {
     if (index > 0 && !slots[index - 1]) return;
     setActiveSlot(index);
     setPickerOpen(true);
+  };
+
+  const valid = Boolean(slots[0]) && slots.every((slot,i)=>!slot || (slot==='文字' ? Boolean(textValues[i]?.trim()) : slot==='照片' ? Boolean(photos[i]) : false));
+  const canSend = valid && (!scheduled || (Boolean(scheduleTime) && new Date(scheduleTime).getTime()>Date.now())) && (!limitEnabled || (Number.isInteger(Number(limitCount)) && Number(limitCount)>0));
+  const persist = (next:BroadcastRecord[]) => {
+    try { localStorage.setItem(RECORD_KEY,JSON.stringify(next)); setRecords(next); return true; }
+    catch { flash('本機儲存失敗，請縮小圖片或清理空間'); return false; }
+  };
+  const saveRecord = (nextStatus:RecordStatus) => {
+    const id=recordId || String(Date.now())+'-'+Math.random().toString(36).slice(2);
+    const record:BroadcastRecord={id,status:nextStatus,slots:[...slots],values:{...textValues},photos:{...photos},scheduled,scheduleTime,audience,postToFeed,limitEnabled,limitCount,updatedAt:new Date().toISOString()};
+    if(!persist([record,...records.filter(x=>x.id!==id)]))return;
+    setRecordId(id); setStatus(nextStatus); setPage('list');
+    flash(nextStatus==='草稿'?'草稿已儲存於本機':nextStatus==='已預約傳送'?'已建立模擬預約（不會真的發送）':'模擬傳送完成（未使用 LINE API）');
+  };
+  const reopen = (record:BroadcastRecord) => {
+    setRecordId(record.status==='草稿'?record.id:null);setSlots([...record.slots]);setTextValues({...record.values});setPhotos({...record.photos});
+    setScheduled(record.scheduled);setScheduleTime(record.scheduleTime);setAudience(record.audience);setPostToFeed(record.postToFeed);setLimitEnabled(record.limitEnabled);setLimitCount(record.limitCount);
+    setPickerOpen(false);setPage('create');
+  };
+  const removeSlot = (index:number) => {
+    setSlots(v=>[...v.filter((_,i)=>i!==index),null]);
+    const shift=(v:Record<number,string>)=>Object.fromEntries(Object.entries(v).filter(([i])=>Number(i)!==index).map(([i,x])=>[Number(i)>index?Number(i)-1:Number(i),x]));
+    setTextValues(shift);setPhotos(shift);
+  };
+  const uploadPhoto=(index:number,file?:File)=>{
+    if(!file)return;
+    if(!['image/jpeg','image/png'].includes(file.type)||file.size>2*1024*1024){flash('教學版請選擇 2MB 以下 JPG 或 PNG');return;}
+    const reader=new FileReader();reader.onload=()=>setPhotos(v=>({...v,[index]:String(reader.result)}));reader.onerror=()=>flash('讀取圖片失敗');reader.readAsDataURL(file);
   };
 
   return (
@@ -100,7 +147,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
 
           <div className="broadcast-latest-list">
             <label className="broadcast-status-select">
-              <select value={status} onChange={e => setStatus(e.target.value)}>
+              <select value={status} onChange={e => setStatus(e.target.value as RecordStatus)}>
                 <option>已預約傳送</option>
                 <option>草稿</option>
                 <option>已傳送</option>
@@ -108,9 +155,9 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
               <ChevronDown size={18}/>
             </label>
 
-            <div className="broadcast-list-empty">
+            {records.filter(x=>x.status===status).length===0 ? <div className="broadcast-list-empty">
               {status === '已預約傳送' ? '尚未預約訊息' : status === '草稿' ? '尚無草稿訊息' : '尚無已傳送訊息'}
-            </div>
+            </div> : <div className="broadcast-records">{records.filter(x=>x.status===status).map(record=><div className="broadcast-record" key={record.id}><button onClick={()=>reopen(record)}><strong>{record.values[0] || record.slots[0] || '草稿'}</strong><small>{record.status==='已預約傳送'?record.scheduleTime:record.updatedAt.slice(0,16).replace('T',' ')}・教學資料</small></button><button aria-label="刪除紀錄" onClick={()=>persist(records.filter(x=>x.id!==record.id))}><X size={18}/></button></div>)}</div>}
           </div>
 
           <div className="broadcast-list-bottom">
@@ -138,7 +185,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                         <div className="broadcast-text-editor">
                           <div className="broadcast-text-editor-head">
                             <strong>文字</strong>
-                            <button onClick={() => openSlot(index)}>變更</button>
+                            <div><button onClick={() => openSlot(index)}>變更</button><button aria-label="刪除訊息" onClick={()=>removeSlot(index)}><X size={15}/></button></div>
                           </div>
                           <textarea
                             maxLength={500}
@@ -147,16 +194,15 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                             onChange={e => setTextValues(values => ({ ...values, [index]: e.target.value }))}
                           />
                           <div className="broadcast-text-editor-foot">
-                            <button onClick={() => flash('表情貼選擇（教學模擬）')}><Smile size={15}/> 表情貼</button>
+                            <button onClick={() => setTextValues(v=>({...v,[index]:((v[index]||'')+'😊').slice(0,500)}))}><Smile size={15}/> 表情貼</button>
                             <span>{(textValues[index] || '').length}/500</span>
                           </div>
                         </div>
                       ) : (
-                        <button className="broadcast-slot-selected-btn" onClick={() => openSlot(index)}>
-                          <FormatIcon type={slot}/>
-                          <strong>{slot}</strong>
-                          <span>點此變更</span>
-                        </button>
+                        <div className="broadcast-media-editor">
+                          <div className="broadcast-text-editor-head"><strong>{slot}</strong><div><button onClick={()=>openSlot(index)}>變更</button><button aria-label="刪除訊息" onClick={()=>removeSlot(index)}><X size={15}/></button></div></div>
+                          {slot==='照片'?<><input type="file" aria-label="選擇照片" accept="image/jpeg,image/png" onChange={e=>uploadPhoto(index,e.target.files?.[0])}/>{photos[index]&&<img src={photos[index]} alt="訊息照片"/>}</>:<p>此格式的內容選擇尚未核實，暫不可模擬傳送。</p>}
+                        </div>
                       )
                     ) : (
                       <button
@@ -174,8 +220,8 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
           </div>
 
           <div className="broadcast-create-latest-bottom">
-            <button className="broadcast-next-latest" disabled={!slots[0]} onClick={() => setPage('settings')}>下一步</button>
-            <button className="broadcast-save-latest" disabled={!slots[0]} onClick={() => flash('已儲存草稿（教學模擬）')}>儲存草稿</button>
+            <button className="broadcast-next-latest" disabled={!valid} onClick={() => setPage('settings')}>下一步</button>
+            <button className="broadcast-save-latest" disabled={!slots[0]} onClick={() => saveRecord('草稿')}>儲存草稿</button>
           </div>
 
           {pickerOpen && (
@@ -211,7 +257,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                     ? <span>尚未新增訊息</span>
                     : slots.map((slot, index) => slot ? (
                       <div className="broadcast-preview-chip" key={index}>
-                        {slot === '文字' ? (textValues[index] || '輸入文字') : slot}
+                        {slot === '文字' ? (textValues[index] || '未輸入文字') : slot==='照片' && photos[index] ? <img src={photos[index]} alt="照片預覽"/> : slot+'（待完成）'}
                       </div>
                     ) : null)}
                 </div>
@@ -238,7 +284,7 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
                 <input type="radio" checked={scheduled} onChange={() => setScheduled(true)}/>
                 <span>預約傳送</span>
               </label>
-              {scheduled && <input className="broadcast-datetime-latest" type="datetime-local"/>}
+              {scheduled && <input className="broadcast-datetime-latest" type="datetime-local" value={scheduleTime} onChange={e=>setScheduleTime(e.target.value)}/>}
             </section>
 
             <section>
@@ -269,9 +315,9 @@ export function MobileBroadcastSimulator({ onBack }: Props) {
           </div>
 
           <div className="broadcast-settings-latest-bottom">
-            <button onClick={() => flash('已儲存草稿（教學模擬）')}>儲存草稿</button>
-            <button onClick={() => flash('傳送測試訊息（教學模擬）')}>傳送測試訊息</button>
-            <button className="send" onClick={() => { flash('群發訊息已傳送（教學模擬）'); window.setTimeout(() => setPage('list'), 800); }}>傳送</button>
+            <button onClick={() => saveRecord('草稿')}>儲存草稿</button>
+            <button disabled={!valid} onClick={() => {setPage('create');setPreviewOpen(true);}}>傳送測試訊息</button>
+            <button className="send" disabled={!canSend} onClick={() => saveRecord(scheduled?'已預約傳送':'已傳送')}>傳送</button>
           </div>
         </>
       )}
