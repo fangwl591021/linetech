@@ -26,7 +26,7 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
   const fileRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState('');
   const [expanded, setExpanded] = useState<string>(template.areas[0]?.id ?? 'A');
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);\n  const [imageMenuOpen, setImageMenuOpen] = useState(false);
 
   const patch = <K extends keyof RichMenuDraft>(key: K, value: RichMenuDraft[K]) => onChange({ ...draft, [key]: value });
 
@@ -127,14 +127,22 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
 
           <div className="settings-column">
             <div className="setting-row"><span>版型</span><button className="btn outline-green" onClick={onOpenTemplate}>{draft.templateId ? '變更' : '選擇'}</button></div>
-            <div className="setting-row">
+            <div className="setting-row image-setting-row">
               <span>圖片</span>
-              <button className="btn outline-green" onClick={() => fileRef.current?.click()}>上傳圖片</button>
-              <button className="btn linetech-library-btn" onClick={() => setLibraryOpen(true)}>Linetech 原創範本庫</button>
+              <div className="image-setting-control">
+                <button className="btn outline-green" onClick={() => setImageMenuOpen(v => !v)}>設定</button>
+                {imageMenuOpen && (
+                  <div className="image-setting-menu">
+                    <button onClick={() => { setImageMenuOpen(false); fileRef.current?.click(); }}>上傳背景圖片</button>
+                    <button onClick={() => { setImageMenuOpen(false); setImageError('「為每個區塊個別建立圖片」已納入新版官方流程；此教學模擬器將在下一階段補上完整編輯器。'); }}>為每個區塊個別建立圖片</button>
+                    <button className="linetech-option" onClick={() => { setImageMenuOpen(false); setLibraryOpen(true); }}>Linetech 原創範本庫</button>
+                  </div>
+                )}
+              </div>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={e=>chooseImage(e.target.files?.[0])}/>
               {draft.imageName && <small className="file-name">{draft.imageName}</small>}
             </div>
-            <div className="linetech-desktop-extension">Linetech 教學擴充：圖庫可修改品牌名稱、顏色及選單文字，再直接套用。</div>
+            <div className="official-flow-note">目前官方網頁版流程：圖片「設定」可上傳背景圖，或「為每個區塊個別建立圖片」。Linetech 圖庫為額外教學擴充。</div>
             {imageError && <div className="error-box">{imageError}</div>}
             <div className="action-head"><span>動作</span><div><button className="icon-btn"><List size={17}/></button><button className="icon-btn active"><Expand size={17}/></button></div></div>
             <div className="action-list">
