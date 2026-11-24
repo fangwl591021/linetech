@@ -410,3 +410,8 @@ button.official-list-button{cursor:pointer}
 .customer-input button:disabled{background:#aaa}
 .customer-practice>p{font-size:12px;color:#4d6354;overflow-wrap:anywhere}
 .official-status-select{width:100%}
+
+.mobile-home-screen{display:flex;flex-direction:column;overflow:hidden}
+.mobile-home-screen>.oa-mobile-header,.mobile-home-screen>.mobile-bottom-tabs.current-four{flex:0 0 auto;position:relative}
+.mobile-home-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}
+.mobile-home-scroll .mobile-home-banner{position:relative;bottom:auto}
