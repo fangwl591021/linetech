@@ -30,8 +30,10 @@ import type { PresetEditorResult } from './PresetEditor';
 import { MobileBroadcastSimulator } from './MobileBroadcastSimulator';
 import { MobileFeaturePage } from './MobileFeaturePage';
 import type { FeatureKey } from './MobileFeaturePage';
+import { MobileMenuStep, CustomerPractice, emptyMenu, loadMenu, saveMenu } from './MobileMenuPractice';
+import type { MobileMenuConfig } from './MobileMenuPractice';
 
-type MobilePage = 'home' | 'intro' | 'step1' | 'broadcast' | 'feature';
+type MobilePage = 'home' | 'intro' | 'step1' | 'step2' | 'step3' | 'broadcast' | 'feature';
 type SizeTab = 'compact' | 'large';
 
 const homeItems = [
@@ -87,10 +89,12 @@ export function MobileRichMenuSimulator() {
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [sizeTab, setSizeTab] = useState<SizeTab>('compact');
-  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [templateId, setTemplateId] = useState<string | null>(()=>loadMenu()?.templateId??null);
+  const [menuConfig,setMenuConfig]=useState<MobileMenuConfig>(()=>loadMenu()?.config??emptyMenu);
+  const [menuError,setMenuError]=useState('');
   const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
-  const [imageDataUrl, setImageDataUrl] = useState('');
-  const [imageName, setImageName] = useState('');
+  const [imageDataUrl, setImageDataUrl] = useState(()=>loadMenu()?.imageDataUrl??'');
+  const [imageName, setImageName] = useState(()=>loadMenu()?.imageName??'');
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
@@ -151,6 +155,7 @@ export function MobileRichMenuSimulator() {
 
   const applyTemplate = () => {
     if (!pendingTemplateId) return;
+    if(templateId!==pendingTemplateId)setMenuConfig(v=>({...v,actions:{}}));
     setTemplateId(pendingTemplateId);
     setImageDataUrl('');
     setImageName('');
@@ -160,14 +165,19 @@ export function MobileRichMenuSimulator() {
   };
 
   const onUpload = (file?: File) => {
-    if (!file) return;
+    if (!file || !selectedTemplate) return;
+    setMenuError('');
+    if(!['image/jpeg','image/png'].includes(file.type)||file.size>10*1024*1024){setMenuError('請上傳 10MB 以下 JPG 或 PNG');return;}
     const reader = new FileReader();
     reader.onload = () => {
-      setImageDataUrl(String(reader.result ?? ''));
-      setImageName(file.name);
-      setMenuLabels([]);
-      setDone(false);
+      const url=String(reader.result??'');
+      const img=new Image();img.onload=()=>{
+        const expected=selectedTemplate.size==='large'?1686:843;
+        if(img.width!==2500||img.height!==expected){setMenuError('圖片尺寸不符，請使用 2500 × '+expected+' px');return;}
+        setImageDataUrl(url);setImageName(file.name);setMenuLabels([]);setDone(false);
+      };img.onerror=()=>setMenuError('圖片無法讀取');img.src=url;
     };
+    reader.onerror=()=>setMenuError('檔案讀取失敗');
     reader.readAsDataURL(file);
   };
 
@@ -190,6 +200,7 @@ export function MobileRichMenuSimulator() {
       <text x="1000" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 C</text>
     </svg>`;
     setTemplateId(officialTemplate.id);
+    setMenuConfig(v=>({...v,actions:{}}));
     setImageDataUrl(`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`);
     setImageName('LINE 官方預設圖片（教學模擬）');
     setMenuLabels(['預設圖片 A','預設圖片 B','預設圖片 C']);
@@ -205,6 +216,7 @@ export function MobileRichMenuSimulator() {
   const applyEditedPreset = (result: PresetEditorResult) => {
     if (!editingPreset) return;
     setTemplateId(editingPreset.templateId);
+    setMenuConfig(v=>({...v,actions:{}}));
     setImageDataUrl(result.imageDataUrl);
     setImageName(`Linetech 自訂範本｜${result.brandName}`);
     setMenuLabels(result.labels);
@@ -216,15 +228,16 @@ export function MobileRichMenuSimulator() {
 
   const reset = () => {
     setPage('home');
+    setMenuConfig(loadMenu()?.config??emptyMenu);setMenuError('');setOfficialPresetOpen(false);
     setPickerOpen(false);
     setPresetOpen(false);
     setPresetIndustry('全部');
     setPendingPresetId(null);
     setEditingPresetId(null);
-    setTemplateId(null);
+    setTemplateId(loadMenu()?.templateId??null);
     setPendingTemplateId(null);
-    setImageDataUrl('');
-    setImageName('');
+    setImageDataUrl(loadMenu()?.imageDataUrl??'');
+    setImageName(loadMenu()?.imageName??'');
     setMenuLabels([]);
     setDone(false);
     setDrawerOpen(false);
@@ -235,8 +248,8 @@ export function MobileRichMenuSimulator() {
     <div className="mobile-training-stage">
       <div className="mobile-training-head">
         <div>
-          <strong>手機版圖文選單教學模擬器</strong>
-          <span>Mobile Rich Menu Simulator – Phase 1 ・ Build 2026.11.24-B1</span>
+          <strong>手機版 LINE OA 教學模擬器</strong>
+          <span>LINE OA Training ・ Build 2026.11.25-RC1</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
@@ -365,12 +378,13 @@ export function MobileRichMenuSimulator() {
                 {menuLabels.length > 0 && <div className="linetech-label-summary">選單文字：{menuLabels.join('・')}</div>}
               </div>
               <div className="mobile-next-area">
-                <button disabled={!canNext} onClick={() => setDone(true)}>下一步</button>
-                {done && <div className="mobile-phase-done">✓ 第一階段完成：版型與背景圖片已設定</div>}
+                {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
+                <button disabled={!canNext} onClick={() => {setDone(false);setPage('step2');}}>下一步</button>
               </div>
             </div>
           )}
 
+          {(page==='step2'||page==='step3')&&selectedTemplate&&<MobileMenuStep step={page==='step2'?2:3} template={selectedTemplate} image={imageDataUrl} config={menuConfig} onChange={v=>{setMenuConfig(v);setDone(false);}} onBack={()=>setPage(page==='step3'?'step2':'step1')} done={done} onNext={()=>{if(page==='step2'){setPage('step3');return;}const success=saveMenu({templateId:selectedTemplate.id,imageDataUrl,imageName,config:menuConfig});setDone(success);setMenuError(success?'':'本機儲存失敗，請縮小圖片或清理空間');}}/>}
           {pickerOpen && (
             <div className="mobile-picker-overlay">
               <div className="mobile-picker-sheet">
@@ -459,19 +473,12 @@ export function MobileRichMenuSimulator() {
 
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
-          <h2>手機版圖文選單</h2>
-          <p>主頁已依你提供的最新 LINE Official Account App 實際截圖更新；「圖文選單」保留在官方 4×4 功能捷徑中，可直接點擊進入教學。</p>
-          <ol>
-            <li className={page === 'home' ? 'active' : 'done'}><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
-            <li className={page === 'intro' ? 'active' : page === 'step1' ? 'done' : ''}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
-            <li className={page === 'step1' && !selectedTemplate ? 'active' : selectedTemplate ? 'done' : ''}><b>3</b><div><strong>選擇版型</strong><span>小 / 大版型；也可由 Linetech 範本同步套用</span></div></li>
-            <li className={page === 'step1' && selectedTemplate && !imageDataUrl ? 'active' : imageDataUrl ? 'done' : ''}><b>4</b><div><strong>建立圖片</strong><span>上傳圖片，或從原創範本庫直接編輯</span></div></li>
-            <li className={done ? 'done active' : ''}><b>5</b><div><strong>完成 Step 1</strong><span>「下一步」變為可按</span></div></li>
-          </ol>
-          <div className="mobile-teaching-note">
-            <strong>可編輯範本 V0.2</strong>
-            <span>選擇原創範本後，可即時修改品牌名稱、主色、背景色、強調色與 A～F 選單文字；套用時會同時帶入對應熱區版型。</span>
-          </div>
+          <h2>教學控制台</h2>
+          <p>首頁與群發入口依最新實機截圖；圖文選單後續步驟依官方規則建立，畫面仍待新版 App 核對。</p>
+          {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
+          <CustomerPractice template={selectedTemplate} image={imageDataUrl} config={menuConfig}/>
+          <div className="mobile-teaching-note"><strong>跨功能練習</strong><span>先在歡迎訊息或自動回應儲存內容，再模擬加入好友或輸入關鍵字。圖文選單的文字動作也會觸發相同回應規則。</span></div>
+          <div className="mobile-teaching-note"><strong>驗證狀態</strong><span>圖文選單 2/3、3/3 與顧客手機是本機教學模擬，非已核對的官方實機畫面；其他功能尚有未完成操作。</span></div>
         </aside>
       </div>
     </div>
