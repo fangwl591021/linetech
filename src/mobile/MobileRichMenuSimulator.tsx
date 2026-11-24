@@ -253,7 +253,7 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC3</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC4</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
@@ -479,7 +479,7 @@ export function MobileRichMenuSimulator() {
 
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
-          {page==='feature'&&activeFeature==='autoreply'?<><h2>自動回應訊息｜操作與測試</h2><p>先建立回應內容，點「下一步」設定標題、狀態與關鍵字，啟用後在右側輸入完整關鍵字測試。</p><div className="mobile-teaching-note"><strong>目前回應設定</strong><span>全域自動回應：{training.autoEnabled?'開啟':'關閉'}・已啟用規則：{training.rules.filter(r=>r.enabled).length} 筆</span>{training.rules.filter(r=>r.enabled).map(r=><span key={r.id}>{r.title||r.keyword||'自動回應'}：{(r.keywords??(r.keyword?[r.keyword]:[])).join('、')||'未登錄關鍵字'}</span>)}</div><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-autoreply/" target="_blank" rel="noreferrer">LINE 官方操作手冊</a><p className="auto-source-note">操作順序依官方 App 手冊；最新手機版畫面尚待核對。</p></>:page==='feature'&&activeFeature==='welcome'?<><h2>加入好友的歡迎訊息｜測試</h2><p>儲存歡迎訊息後，點「模擬加入好友」確認顧客端收到的內容。</p></>:page==='intro'||page==='step1'||page==='step2'||page==='step3'?<><h2>圖文選單｜操作與測試</h2><p>選擇版型、設定熱區動作及使用期間，並於顧客手機測試點擊結果。</p></>:<><h2>教學控制台</h2>
+          {page==='feature'&&activeFeature==='autoreply'?<><h2>自動回應訊息｜操作與測試</h2><p>先建立標題、選擇回應類型並登錄關鍵字，點「下一步」設定訊息，啟用後在右側測試。</p><div className="mobile-teaching-note"><strong>目前回應設定</strong><span>全域自動回應：{training.autoEnabled?'開啟':'關閉'}・已啟用規則：{training.rules.filter(r=>r.enabled).length} 筆</span>{training.rules.filter(r=>r.enabled).map(r=><span key={r.id}>{r.title||r.keyword||'自動回應'}：{(r.keywords??(r.keyword?[r.keyword]:[])).join('、')||'未登錄關鍵字'}</span>)}</div><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-autoreply/" target="_blank" rel="noreferrer">LINE 官方操作手冊</a><details className="auto-reference"><summary>官方 App 畫面對照（日本 2025.08.27）</summary><p>較新版官方 App 參考圖，非台灣最新版實機驗證；介面中文為暫譯。</p><a href="https://www.lycbiz.com/sites/default/files/inline-images/%E7%94%BB%E5%83%8F1_0.png" target="_blank" rel="noreferrer"><img src="https://www.lycbiz.com/sites/default/files/inline-images/%E7%94%BB%E5%83%8F1_0.png" alt="日本 LINE 官方自動回應 App 建立與訊息設定流程圖"/></a><a href="https://www.lycbiz.com/jp/manual/OfficialAccountManager/Auto-response-messages/" target="_blank" rel="noreferrer">日本 LINE 官方新版手冊</a><a href="https://tw.linebiz.com/skill/courses/oafeature/line-oa-auto-reply/" target="_blank" rel="noreferrer">台灣 2026.07 官方課程（需登入）</a></details></>:page==='feature'&&activeFeature==='welcome'?<><h2>加入好友的歡迎訊息｜測試</h2><p>儲存歡迎訊息後，點「模擬加入好友」確認顧客端收到的內容。</p></>:page==='intro'||page==='step1'||page==='step2'||page==='step3'?<><h2>圖文選單｜操作與測試</h2><p>選擇版型、設定熱區動作及使用期間，並於顧客手機測試點擊結果。</p></>:<><h2>教學控制台</h2>
           <p>首頁與群發入口依最新實機截圖；圖文選單後續步驟依官方規則建立，畫面仍待新版 App 核對。</p></>}
           {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
           <CustomerPractice template={page==='feature'&&['autoreply','welcome'].includes(activeFeature)?null:selectedTemplate} image={imageDataUrl} config={menuConfig} context={page==='feature'&&activeFeature==='autoreply'?'reply':page==='feature'&&activeFeature==='welcome'?'welcome':page==='intro'||page==='step1'||page==='step2'||page==='step3'?'menu':'general'}/>
