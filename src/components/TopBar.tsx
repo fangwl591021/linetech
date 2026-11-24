@@ -15,7 +15,7 @@ export function TopBar() {
           <span className="muted">@k-linkintelligent</span>
           <span className="plan-pill">輕用量</span>
           <span>👥 782</span>
-          <span>💬 聊天：開啟</span>
+          <span>💬 回應模式：聊天</span>
         </div>
         <div className="topbar-actions">
           <Bell size={19} />
