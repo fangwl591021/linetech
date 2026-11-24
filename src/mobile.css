@@ -522,3 +522,9 @@ button.official-list-button{cursor:pointer}
 .auto-delete-link{display:block;margin:12px auto;border:0;background:white;color:#a13b3b}
 .auto-status-copy{padding:0 18px 18px;color:#303438;font-size:13px}
 .auto-reference{font-size:12px;line-height:1.5}.auto-reference summary{cursor:pointer;font-weight:700}.auto-reference img{max-width:100%;height:auto;display:block}.auto-reference a{display:block;color:#167c44;margin:6px 0}
+
+.auto-dates>select{padding:12px 8px;background:#fff;border:1px solid #e0e3e5;border-radius:4px;font-size:12px;width:100%}
+.auto-schedule-group{border-top:1px solid #e8e9ea;padding:13px 0;display:grid;gap:11px}
+.auto-schedule-group>label:not(.auto-radio){display:grid;grid-template-columns:50px 1fr;align-items:center}
+.auto-schedule-group>label.auto-radio{display:flex}
+.auto-schedule-group input:disabled,.auto-dates select:disabled{background:#f4f5f6;color:#a6afb4}
