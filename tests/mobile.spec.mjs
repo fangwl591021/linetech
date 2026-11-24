@@ -59,7 +59,7 @@ test('welcome and keyword rules update the customer simulator',async({page})=>{
   await page.getByLabel('顧客訊息').fill('請問可以預約嗎');
   await page.locator('.customer-input button').click();
   await expect(page.locator('.customer-bubble.oa').filter({hasText:'請選擇服務'})).toHaveCount(2);
-  await page.locator('.auto-rule-row > button').click();
+  await page.locator('.auto-rule-row > button').filter({hasText:'預約服務'}).click();
   await page.getByRole('button',{name:'停止使用',exact:true}).click();
   await page.getByLabel('顧客訊息').fill('預約');
   await page.locator('.customer-input button').click();
@@ -123,9 +123,29 @@ test('auto reply saved inactive is not delivered, and activated default is deliv
   await page.getByLabel('顧客訊息').fill('你好');
   await page.locator('.customer-input button').click();
   await expect(page.locator('.customer-bubble.oa').filter({hasText:'您好，請稍候'})).toHaveCount(0);
-  await page.locator('.auto-rule-row > button').click();
+  await page.locator('.auto-rule-row > button').filter({hasText:'預設招呼'}).click();
   await page.getByRole('button',{name:'啟用已儲存訊息',exact:true}).click();
   await page.getByLabel('顧客訊息').fill('你好');
   await page.locator('.customer-input button').click();
   await expect(page.locator('.customer-bubble.oa').filter({hasText:'您好，請稍候'})).toHaveCount(1);
+});
+
+test('Taiwan auto reply real-screen labels and initial Default row',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(2).click();
+  await expect(page.locator('.auto-tw-description')).toHaveText('可設定當用戶傳訊給本帳號時，系統將自動回傳的訊息內容。');
+  const initial=page.locator('.auto-rule-row');
+  await expect(initial).toHaveCount(1);
+  await expect(initial).toContainText('Default');
+  await expect(initial).toContainText('一律回應');
+  await expect(initial).toContainText('停用中');
+  await page.locator('.auto-reply-footer').getByRole('button',{name:'建立',exact:true}).click();
+  await page.getByLabel('關鍵字回應',{exact:true}).check();
+  await expect(page.locator('.auto-tw-title-foot')).toContainText('標題為方便後台管理用，不會向用戶顯示。');
+  await expect(page.locator('.auto-tw-title-foot')).toContainText('0/20');
+  await expect(page.locator('.auto-tw-help')).toHaveText('Help');
+  await expect(page.locator('.auto-tw-options')).toContainText('選項設定');
+  await expect(page.locator('.auto-tw-options')).toContainText('指定日期或時間');
+  await expect(page.locator('.auto-tw-options')).toContainText('不設定');
+  await page.getByRole('button',{name:'下一步',exact:true}).click();
+  await expect(page.locator('.auto-settings [role=alert]')).toContainText('請輸入標題');
 });
