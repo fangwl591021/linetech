@@ -257,8 +257,9 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-layout">
         <section className="oa-mobile-device" aria-label="LINE Official Account 手機版模擬器">
           {page === 'home' && (
-            <div className="oa-mobile-screen">
+            <div className="oa-mobile-screen mobile-home-screen">
               <MobileHeader title="主頁" onMenu={() => setDrawerOpen(true)} />
+              <div className="mobile-home-scroll">
               <button className="mobile-account-card mobile-account-button" onClick={() => openFeature('businessProfile', '商業簡介')}>
                 <div className="mobile-account-avatar">K</div>
                 <div className="mobile-account-copy"><strong>康立全球智能系統</strong><span>@k-linkintelligent</span></div>
@@ -291,6 +292,7 @@ export function MobileRichMenuSimulator() {
                 </button>
                 <div className="banner-people">👩🏻‍💼💬👩🏻‍💼</div>
                 <button className="banner-arrow" onClick={() => setBannerIndex(i => (i + 1) % banners.length)}>›</button>
+              </div>
               </div>
               <div className="mobile-bottom-tabs current-four">
                 <button className="active" onClick={() => setPage('home')}><Home /></button>
