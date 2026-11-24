@@ -453,3 +453,49 @@ button.official-list-button{cursor:pointer}
 .training-checkpoints{display:grid;gap:6px;margin-top:7px}
 .training-checkpoints button{background:#fff;border:1px solid #d5dfd8;color:#354c3e;font-size:12px;text-align:left;padding:9px;border-radius:5px}
 .mobile-teaching-note>a{font-size:12px;color:#187c44;text-decoration:underline}
+
+/* RC3: content-first auto reply practice and contextual customer chat. */
+.auto-reply-screen{display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.auto-reply-screen>.oa-mobile-header{flex:0 0 auto}
+.auto-reply-body{flex:1;min-height:0;overflow:auto;padding:12px 15px;background:#fff}
+.auto-empty{padding:95px 0;text-align:center;color:#aab2b8;font-weight:700;font-size:15px}
+.auto-rule-row{display:flex;gap:9px;align-items:center;border-bottom:1px solid #e4e7e9;padding:13px 2px}
+.auto-rule-row>button{flex:1;min-width:0;display:grid;gap:5px;text-align:left;border:0;background:#fff;color:#30363a;padding:0}
+.auto-rule-row>button span,.auto-rule-row>button small{font-size:12px;color:#7e878c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auto-on,.auto-off{font-size:12px;white-space:nowrap}.auto-on{color:#06a749}.auto-off{color:#8d969d}
+.auto-reply-footer{padding:10px 15px 15px;display:flex;gap:8px;flex:0 0 auto;background:#fff}
+.auto-reply-footer button{flex:1;min-height:48px;background:#06c755;border:0;border-radius:5px;font-size:16px;color:#fff;font-weight:700}
+.auto-reply-footer button:disabled{background:#e4e7e8;color:#a6adb0}
+.auto-reply-footer .auto-delete{background:#fff;border:1px solid #d4d8da;color:#b44141}
+.auto-message-card{border:1px solid #d9dcde;margin-bottom:12px}
+.auto-message-heading{background:#f5f5f5;display:flex;align-items:center;justify-content:space-between;padding:9px 12px;font-size:14px;border-bottom:1px solid #d9dcde}
+.auto-message-heading>div{display:flex;gap:7px}
+.auto-message-heading button{border:0;background:transparent;color:#777;padding:4px 5px}
+.auto-message-heading button:disabled{color:#ccc}
+.auto-message-content{padding:12px}
+.auto-message-content textarea{width:100%;box-sizing:border-box;min-height:135px;resize:vertical;border:1px solid #d7dcdf;border-radius:4px;padding:10px;font-size:14px}
+.auto-count{text-align:right;font-size:12px;color:#a1aab1;margin:4px 0 12px}
+.auto-message-tools{display:flex;flex-wrap:wrap;gap:6px}
+.auto-message-tools button{border:1px solid #c7ced3;background:#fff;border-radius:4px;color:#424a50;padding:6px;font-size:12px}
+.auto-add{margin:12px auto;width:150px}
+.auto-settings{padding:8px 15px}
+.auto-field,.auto-link-row{display:flex;width:100%;box-sizing:border-box;align-items:center;justify-content:space-between;border:0;border-bottom:1px solid #e0e4e7;background:#fff;padding:16px 0;gap:10px;font-size:14px;color:#30363a;text-align:left}
+.auto-field input:not([type=checkbox]){min-width:0;flex:1;border:0;background:white;text-align:right;padding:7px;font-size:14px}
+.auto-switch{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.auto-switch input{accent-color:#06c755}
+.auto-dates{display:grid;gap:10px;padding:10px 0}
+.auto-dates label{display:grid;gap:5px;font-size:13px}.auto-dates input{width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:4px}
+.auto-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.auto-chips>span{display:flex;align-items:center;gap:5px;background:#edf8f0;color:#297b43;border:1px solid #cde5d3;border-radius:4px;padding:6px 8px;overflow-wrap:anywhere}
+.auto-chips button{background:transparent;border:0;color:#52695a;display:flex;padding:0}
+.auto-keyword-entry{display:flex;gap:8px}
+.auto-keyword-entry input{flex:1;min-width:0;border:1px solid #d5d9dc;border-radius:4px;padding:10px;font-size:14px}
+.auto-keyword-entry button{border:0;border-radius:4px;background:#06c755;color:#fff;padding:0 14px}
+.auto-keyword-entry button:disabled{background:#ddd;color:#999}
+.auto-keyword-count,.auto-source-note{color:#818b91;font-size:12px}
+.customer-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.customer-chat-row{display:flex;align-items:flex-start;gap:6px}
+.customer-chat-row.friend{justify-content:flex-end}
+.customer-chat-row.oa{justify-content:flex-start}
+.customer-avatar{flex:0 0 25px;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#555;font-size:11px}
+.customer-chat-row .customer-bubble{max-width:78%}
