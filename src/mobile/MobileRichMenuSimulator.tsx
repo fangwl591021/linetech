@@ -28,8 +28,10 @@ import { presetIndustries, richMenuPresets } from './presets';
 import { PresetEditor } from './PresetEditor';
 import type { PresetEditorResult } from './PresetEditor';
 import { MobileBroadcastSimulator } from './MobileBroadcastSimulator';
+import { MobileFeaturePage } from './MobileFeaturePage';
+import type { FeatureKey } from './MobileFeaturePage';
 
-type MobilePage = 'home' | 'intro' | 'step1' | 'broadcast' | 'placeholder';
+type MobilePage = 'home' | 'intro' | 'step1' | 'broadcast' | 'feature';
 type SizeTab = 'compact' | 'large';
 
 const homeItems = [
@@ -92,7 +94,7 @@ export function MobileRichMenuSimulator() {
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
-  const [placeholderLabel, setPlaceholderLabel] = useState('');
+  const [activeFeature, setActiveFeature] = useState<FeatureKey>('welcome');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [bannerIndex, setBannerIndex] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -103,7 +105,7 @@ export function MobileRichMenuSimulator() {
     ['LINE Touch', 'NFC 輕觸即開啟服務']
   ] as const;
 
-  const openFeature = (key: string, label?: string) => {
+  const openFeature = (key: string, _label?: string) => {
     setDrawerOpen(false);
     if (key === 'rich-menu') {
       setPage('intro');
@@ -113,8 +115,8 @@ export function MobileRichMenuSimulator() {
       setPage('broadcast');
       return;
     }
-    setPlaceholderLabel(label || key);
-    setPage('placeholder');
+    setActiveFeature(key as FeatureKey);
+    setPage('feature');
   };
 
   const selectedTemplate = useMemo(
@@ -301,15 +303,8 @@ export function MobileRichMenuSimulator() {
             <MobileBroadcastSimulator onBack={() => setPage('home')} />
           )}
 
-          {page === 'placeholder' && (
-            <div className="oa-mobile-screen mobile-feature-placeholder">
-              <MobileHeader title={placeholderLabel || '功能'} onBack={() => setPage('home')} />
-              <div className="placeholder-body">
-                <strong>{placeholderLabel}</strong>
-                <p>此功能會依最新版 LINE Official Account App 流程逐一補上。</p>
-                <span>目前先完成「群發訊息」，下一個功能完成後會直接替換這個提示頁。</span>
-              </div>
-            </div>
+          {page === 'feature' && (
+            <MobileFeaturePage feature={activeFeature} onBack={() => setPage('home')} />
           )}
 
           {page === 'intro' && (
