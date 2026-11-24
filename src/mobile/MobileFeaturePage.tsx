@@ -175,14 +175,16 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
   const [mode,setMode]=useState<'關鍵字'|'預設回應'>('預設回應');
   const [statusOpen,setStatusOpen]=useState(false);
   const [schedule,setSchedule]=useState(false);
+  const [scheduleKind,setScheduleKind]=useState<'period'|'daily'>('period');
+  const [timezone,setTimezone]=useState('Asia/Taipei');
   const [start,setStart]=useState('');
   const [end,setEnd]=useState('');
   const [picker,setPicker]=useState(false);
   const [preview,setPreview]=useState(false);
   const [toast,setToast]=useState('');
   const flash=(t:string)=>setToast(t);
-  const fresh=()=>{setEditId(null);setTitle('');setKeywords([]);setKeyword('');setMessages([]);setMode('預設回應');setSchedule(false);setStart('');setEnd('');setToast('');setPage('settings');setPicker(false);};
-  const edit=(r:ReplyRule)=>{setEditId(r.id);setTitle(r.title||r.keyword||'自動回應');setKeywords(ruleKeywords(r));setKeyword('');setMessages(ruleMessages(r));setMode(ruleKeywords(r).length?'關鍵字':'預設回應');setStart(r.start||'');setEnd(r.end||'');setSchedule(Boolean(r.start||r.end));setToast('');setPage('settings');};
+  const fresh=()=>{setEditId(null);setTitle('');setKeywords([]);setKeyword('');setMessages([]);setMode('預設回應');setSchedule(false);setScheduleKind('period');setTimezone('Asia/Taipei');setStart('');setEnd('');setToast('');setPage('settings');setPicker(false);};
+  const edit=(r:ReplyRule)=>{setEditId(r.id);setTitle(r.title||r.keyword||'自動回應');setKeywords(ruleKeywords(r));setKeyword('');setMessages(ruleMessages(r));setMode(ruleKeywords(r).length?'關鍵字':'預設回應');setScheduleKind(r.scheduleKind||'period');setTimezone(r.timezone||'Asia/Taipei');setStart(r.scheduleKind==='daily'?r.start||'':(r.start||'').slice(0,10));setEnd(r.scheduleKind==='daily'?r.end||'':(r.end||'').slice(0,10));setSchedule(Boolean(r.start||r.end));setToast('');setPage('settings');};
   const addKeyword=()=>{
     const k=keyword.trim();
     if(!k)return;
@@ -192,12 +194,13 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
     setKeywords(v=>[...v,k]);setKeyword('');setToast('');
   };
   const contentValid=messages.length>0&&messages.every(x=>x.trim());
-  const settingsValid=Boolean(title.trim()&&(mode==='預設回應'||keywords.length>0)&&!keyword.trim()&&(!schedule||(start&&end&&new Date(start)<new Date(end))));
+  const scheduleValid=!schedule||Boolean(start&&end&&(scheduleKind==='daily'?start!==end:start<=end));
+  const settingsValid=Boolean(title.trim()&&(mode==='預設回應'||keywords.length>0)&&!keyword.trim()&&scheduleValid);
   const valid=contentValid&&settingsValid;
   const save=(enabled:boolean)=>{
     if(!valid)return;
     if(keyword.trim()){flash('請先完成關鍵字登錄');return;}
-    const rule:ReplyRule={id:editId||String(Date.now()),title:title.trim(),mode,keyword:mode==='關鍵字'?keywords[0]||'':'',keywords:mode==='關鍵字'?[...keywords]:[],reply:messages[0],messages:[...messages],enabled,start:schedule?start:undefined,end:schedule?end:undefined};
+    const rule:ReplyRule={id:editId||String(Date.now()),title:title.trim(),mode,keyword:mode==='關鍵字'?keywords[0]||'':'',keywords:mode==='關鍵字'?[...keywords]:[],reply:messages[0],messages:[...messages],enabled,start:schedule?start:undefined,end:schedule?end:undefined,scheduleKind:schedule?scheduleKind:undefined,timezone:schedule?timezone:undefined};
     if(updateTraining({rules:[...config.rules.filter(r=>r.id!==rule.id),rule]})){setPage('list');setToast('');}else flash('本機儲存失敗');
   };
   return <div className="oa-mobile-screen auto-reply-screen">
@@ -238,8 +241,8 @@ function AutoReplyPage({ onBack }: { onBack: () => void }) {
     </>:<>
       <Header title="排程" onBack={()=>setPage('settings')}/>
       <div className="auto-reply-body"><div className="auto-field"><span>設定排程</span><label className="auto-switch"><input aria-label="設定排程" type="checkbox" checked={schedule} onChange={e=>setSchedule(e.target.checked)}/></label></div>
-        {schedule&&<div className="auto-dates"><small>時區：瀏覽器本機時間</small><label>開始日期或時間<input type="datetime-local" value={start} onChange={e=>setStart(e.target.value)}/></label><label>結束日期或時間<input type="datetime-local" value={end} onChange={e=>setEnd(e.target.value)}/></label></div>}
-        <div className="auto-inline-action"><button disabled={schedule&&!(start&&end&&new Date(start)<new Date(end))} onClick={()=>setPage('settings')}>儲存</button></div>
+        <div className="auto-dates"><select aria-label="時區" disabled={!schedule} value={timezone} onChange={e=>setTimezone(e.target.value)}><option value="Asia/Taipei">(UTC+08:00) Asia/Taipei</option><option value="Asia/Tokyo">(UTC+09:00) Asia/Tokyo</option><option value="UTC">(UTC+00:00) UTC</option></select>{(['period','daily'] as const).map(kind=><section className="auto-schedule-group" key={kind}><label className="auto-radio"><input type="radio" disabled={!schedule} checked={scheduleKind===kind} onChange={()=>{setScheduleKind(kind);setStart(kind==='daily'?'00:00':'');setEnd(kind==='daily'?'23:59':'');}}/>{kind==='period'?'期間':'時間（每天）'}</label><label>開始<input aria-label={kind+' 開始'} type={kind==='period'?'date':'time'} disabled={!schedule||scheduleKind!==kind} value={scheduleKind===kind?start:''} onChange={e=>setStart(e.target.value)}/></label><label>結束<input aria-label={kind+' 結束'} type={kind==='period'?'date':'time'} disabled={!schedule||scheduleKind!==kind} value={scheduleKind===kind?end:''} onChange={e=>setEnd(e.target.value)}/></label></section>)}</div>
+        <div className="auto-inline-action"><button disabled={!scheduleValid} onClick={()=>setPage('settings')}>儲存</button></div>
       </div>
     </>}
     {statusOpen&&<div className="broadcast-type-backdrop"><div className="broadcast-type-sheet"><div className="broadcast-type-sheet-head"><strong>目前狀態</strong><button aria-label="關閉" onClick={()=>setStatusOpen(false)}><X size={23}/></button></div><div className="auto-status-copy"><p>{config.autoEnabled?'自動回應功能已開啟。':'自動回應功能已關閉。'}</p><p>已啟用訊息：{config.rules.filter(r=>r.enabled).length} 則</p><p>回應設定請由主頁進入「設定」。</p></div></div></div>}
