@@ -32,6 +32,8 @@ import { MobileFeaturePage } from './MobileFeaturePage';
 import type { FeatureKey } from './MobileFeaturePage';
 import { MobileMenuStep, CustomerPractice, emptyMenu, loadMenu, saveMenu } from './MobileMenuPractice';
 import type { MobileMenuConfig } from './MobileMenuPractice';
+import { useAssets, usableCoupons } from './trainingAssets';
+import { useTraining } from './trainingState';
 
 type MobilePage = 'home' | 'intro' | 'step1' | 'step2' | 'step3' | 'broadcast' | 'feature';
 type SizeTab = 'compact' | 'large';
@@ -83,6 +85,8 @@ function MobileHeader({ title, onBack, onMenu }: { title: string; onBack?: () =>
 
 export function MobileRichMenuSimulator() {
   const [page, setPage] = useState<MobilePage>('home');
+  const assets=useAssets();
+  const training=useTraining();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [presetOpen, setPresetOpen] = useState(false);
   const [presetIndustry, setPresetIndustry] = useState('全部');
@@ -249,7 +253,7 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC1</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC2</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
@@ -480,7 +484,16 @@ export function MobileRichMenuSimulator() {
           {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
           <CustomerPractice template={selectedTemplate} image={imageDataUrl} config={menuConfig}/>
           <div className="mobile-teaching-note"><strong>跨功能練習</strong><span>先在歡迎訊息或自動回應儲存內容，再模擬加入好友或輸入關鍵字。圖文選單的文字動作也會觸發相同回應規則。</span></div>
-          <div className="mobile-teaching-note"><strong>驗證狀態</strong><span>圖文選單 2/3、3/3 與顧客手機是本機教學模擬，非已核對的官方實機畫面；其他功能尚有未完成操作。</span></div>
+          <div className="mobile-teaching-note"><strong>實作練習・素材與回應設定</strong><span>完成條件以已儲存的本機資料判斷，不以點過按鈕計算；此區非 LINE 官方功能。</span>
+            <div className="training-checkpoints">
+              <button onClick={()=>openFeature('welcome')}>{training.welcomeEnabled&&training.welcome.some(x=>x.trim())?'✓':'○'} 歡迎訊息已設定</button>
+              <button onClick={()=>openFeature('autoreply')}>{training.autoEnabled&&training.rules.some(r=>r.enabled&&r.mode==='關鍵字'&&r.keyword.trim()&&r.reply.trim())?'✓':'○'} 建立關鍵字自動回應</button>
+              <button onClick={()=>openFeature('coupon')}>{usableCoupons(assets).length?'✓':'○'} 建立可選用優惠券</button>
+              <button onClick={()=>openFeature('richmessage')}>{assets.richMessages.length?'✓':'○'} 建立圖文訊息</button>
+              <button onClick={()=>openFeature('stampcard')}>{assets.reward?.published?'✓':'○'} 公開模擬集點卡</button>
+            </div>
+          </div>
+          <div className="mobile-teaching-note"><strong>官方操作資料・畫面核對</strong><span>首頁及群發入口依實機圖；圖文選單後續、優惠券、圖文訊息與集點卡依官方功能規則模擬，最新手機子頁仍待核對。</span><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-sendmsg/" target="_blank" rel="noreferrer">訊息發送手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmenu/" target="_blank" rel="noreferrer">圖文選單手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-richmessage/" target="_blank" rel="noreferrer">圖文訊息版型</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-coupon/" target="_blank" rel="noreferrer">優惠券手冊</a><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-stampcard/" target="_blank" rel="noreferrer">集點卡手冊</a></div>
         </aside>
       </div>
     </div>
