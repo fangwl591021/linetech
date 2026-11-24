@@ -15,11 +15,13 @@
     "typescript": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "latest",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "wrangler": "latest"
+    "wrangler": "latest",
+    "@types/qrcode": "1.5.5"
   }
 }
