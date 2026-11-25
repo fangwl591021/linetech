@@ -261,6 +261,8 @@ test('rich menu original preset entry and all twelve layouts remain usable on sh
   await page.locator('.mobile-picker-actions .select').click();
   await expect(page.locator('.mobile-area-label')).toHaveCount(1);
   await page.getByRole('button',{name:'選擇預設圖片',exact:true}).click();
+  await expect(page.locator('.linetech-preset-card')).toHaveCount(18);
+  await page.locator('.linetech-library-filters').getByRole('button',{name:'官方版型',exact:true}).click();
   await expect(page.locator('.linetech-preset-card')).toHaveCount(12);
   await page.locator('.linetech-preset-card').last().click();
   await page.getByRole('button',{name:'編輯並套用',exact:true}).click();
@@ -305,7 +307,7 @@ test('desktop rich menu retains direct original library and opens it cleanly aga
   await page.getByRole('button',{name:'電腦版',exact:true}).click();
   await page.getByRole('button',{name:'建立圖文選單',exact:true}).click();
   await page.getByRole('button',{name:'Linetech 原創範本庫',exact:true}).click();
-  await expect(page.locator('.desktop-preset-card')).toHaveCount(12);
+  await expect(page.locator('.desktop-preset-card')).toHaveCount(18);
   await page.locator('.desktop-preset-card').first().click();
   await page.getByRole('button',{name:'編輯並套用',exact:true}).click();
   await page.locator('.desktop-editor-form section').first().locator('input').fill('桌面回歸測試');
@@ -313,5 +315,5 @@ test('desktop rich menu retains direct original library and opens it cleanly aga
   await expect(page.locator('.file-name')).toContainText('桌面回歸測試');
   await expect(page.locator('.preview-menu img')).toBeVisible();
   await page.getByRole('button',{name:'Linetech 原創範本庫',exact:true}).click();
-  await expect(page.locator('.desktop-preset-card')).toHaveCount(12);
+  await expect(page.locator('.desktop-preset-card')).toHaveCount(18);
 });
