@@ -144,6 +144,7 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
               {draft.imageName && <small className="file-name">{draft.imageName}</small>}
             </div>
             <div className="official-flow-note">目前官方網頁版流程：圖片「設定」可上傳背景圖，或「為每個區塊個別建立圖片」。Linetech 圖庫為額外教學擴充。</div>
+            <div className="linetech-desktop-extension"><button className="btn linetech-library-btn" onClick={() => {setImageMenuOpen(false);setLibraryOpen(true);}}>Linetech 原創範本庫</button><div>教學擴充・可編輯品牌、顏色與選單文字</div></div>
             {imageError && <div className="error-box">{imageError}</div>}
             <div className="action-head"><span>動作</span><div><button className="icon-btn"><List size={17}/></button><button className="icon-btn active"><Expand size={17}/></button></div></div>
             <div className="action-list">
@@ -174,7 +175,7 @@ export function RichMenuEditor({ draft, template, onChange, onOpenTemplate, onSa
       <div className="bottom-actions"><button className="btn secondary" onClick={onSave}>儲存草稿</button><button className="btn primary" onClick={onSave}>儲存</button></div>
       <button className="back-list" onClick={onBack}>‹ 返回一覽</button>
 
-      <DesktopPresetLibrary open={libraryOpen} onClose={() => setLibraryOpen(false)} onApply={applyPreset} />
+      {libraryOpen&&<DesktopPresetLibrary open={true} onClose={() => setLibraryOpen(false)} onApply={applyPreset} />}
     </section>
   );
 }
