@@ -102,7 +102,6 @@ export function MobileRichMenuSimulator() {
   const [imageName, setImageName] = useState(()=>loadMenu()?.imageName??'');
   const [menuLabels, setMenuLabels] = useState<string[]>([]);
   const [done, setDone] = useState(false);
-  const [officialPresetOpen, setOfficialPresetOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState<FeatureKey>('welcome');
   const [friendTool,setFriendTool]=useState<FriendTool|null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -162,12 +161,15 @@ export function MobileRichMenuSimulator() {
 
   const applyTemplate = () => {
     if (!pendingTemplateId) return;
-    if(templateId!==pendingTemplateId)setMenuConfig(v=>({...v,actions:{}}));
-    setTemplateId(pendingTemplateId);
-    setImageDataUrl('');
-    setImageName('');
-    setMenuLabels([]);
-    setDone(false);
+    if(templateId!==pendingTemplateId){
+      setMenuConfig(v=>({...v,actions:{}}));
+      setTemplateId(pendingTemplateId);
+      setImageDataUrl('');
+      setImageName('');
+      setMenuLabels([]);
+      setDone(false);
+    }
+    setMenuError('');
     setPickerOpen(false);
   };
 
@@ -179,8 +181,8 @@ export function MobileRichMenuSimulator() {
     reader.onload = () => {
       const url=String(reader.result??'');
       const img=new Image();img.onload=()=>{
-        const expected=selectedTemplate.size==='large'?1686:843;
-        if(img.width!==2500||img.height!==expected){setMenuError('圖片尺寸不符，請使用 2500 × '+expected+' px');return;}
+        const allowed=selectedTemplate.size==='large'?[[2500,1686],[1200,810],[800,540]]:[[2500,843],[1200,405],[800,270]];
+        if(!allowed.some(([w,h])=>img.width===w&&img.height===h)){setMenuError('圖片尺寸不符，'+selectedTemplate.label+'可用：'+allowed.map(([w,h])=>w+' × '+h).join('、')+' px');return;}
         setImageDataUrl(url);setImageName(file.name);setMenuLabels([]);setDone(false);
       };img.onerror=()=>setMenuError('圖片無法讀取');img.src=url;
     };
@@ -193,26 +195,6 @@ export function MobileRichMenuSimulator() {
     setEditingPresetId(null);
     setPresetIndustry('全部');
     setPresetOpen(true);
-  };
-
-  const applyOfficialPreset = () => {
-    const officialTemplate = templates.find(t => t.id === 'compact-3') ?? templates[0];
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="405" viewBox="0 0 1200 405">
-      <rect width="1200" height="405" fill="#f5f6f7"/>
-      <rect x="8" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
-      <rect x="408" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
-      <rect x="808" y="8" width="384" height="389" rx="16" fill="#ffffff" stroke="#d2d7da"/>
-      <text x="200" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 A</text>
-      <text x="600" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 B</text>
-      <text x="1000" y="210" text-anchor="middle" font-family="Arial" font-size="34" fill="#333">預設圖片 C</text>
-    </svg>`;
-    setTemplateId(officialTemplate.id);
-    setMenuConfig(v=>({...v,actions:{}}));
-    setImageDataUrl(`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`);
-    setImageName('LINE 官方預設圖片（教學模擬）');
-    setMenuLabels(['預設圖片 A','預設圖片 B','預設圖片 C']);
-    setDone(false);
-    setOfficialPresetOpen(false);
   };
 
   const openPresetEditor = () => {
@@ -228,6 +210,7 @@ export function MobileRichMenuSimulator() {
     setImageName(`Linetech 自訂範本｜${result.brandName}`);
     setMenuLabels(result.labels);
     setDone(false);
+    setMenuError('');
     setEditingPresetId(null);
     setPresetOpen(false);
     setPendingPresetId(null);
@@ -235,7 +218,7 @@ export function MobileRichMenuSimulator() {
 
   const reset = () => {
     setPage('home');
-    setMenuConfig(loadMenu()?.config??emptyMenu);setMenuError('');setOfficialPresetOpen(false);
+    setMenuConfig(loadMenu()?.config??emptyMenu);setMenuError('');
     setPickerOpen(false);
     setPresetOpen(false);
     setPresetIndustry('全部');
@@ -256,13 +239,13 @@ export function MobileRichMenuSimulator() {
       <div className="mobile-training-head">
         <div>
           <strong>手機版 LINE OA 教學模擬器</strong>
-          <span>LINE OA Training ・ Build 2026.11.25-RC7.1</span>
+          <span>LINE OA Training ・ Build 2026.11.25-RC7.2</span>
         </div>
         <button onClick={reset}>重新開始</button>
       </div>
 
       <div className="mobile-training-layout">
-        <section className={"oa-mobile-device"+(page==="feature"&&activeFeature==="addfriend"?" friend-device":"")} aria-label="LINE Official Account 手機版模擬器">
+        <section className={"oa-mobile-device"+(page==="feature"&&activeFeature==="addfriend"?" friend-device":['intro','step1','step2','step3'].includes(page)?" menu-device":"")} aria-label="LINE Official Account 手機版模擬器">
           {page === 'home' && (
             <div className="oa-mobile-screen mobile-home-screen">
               <MobileHeader title="主頁" onMenu={() => setDrawerOpen(true)} />
@@ -330,7 +313,7 @@ export function MobileRichMenuSimulator() {
           )}
 
           {page === 'intro' && (
-            <div className="oa-mobile-screen mobile-simple-page">
+            <div className="oa-mobile-screen mobile-simple-page menu-intro-screen">
               <MobileHeader title="圖文選單" onBack={() => setPage('home')} />
               <div className="mobile-intro-content">
                 <h2>可以在聊天室顯示螢幕選單，引導用戶執行動作。</h2>
@@ -351,7 +334,7 @@ export function MobileRichMenuSimulator() {
           )}
 
           {page === 'step1' && (
-            <div className="oa-mobile-screen mobile-simple-page">
+            <div className="oa-mobile-screen mobile-simple-page menu-step1-screen">
               <MobileHeader title="內容設定（1/3）" onBack={() => setPage('intro')} />
               <div className="mobile-step1-preview">
                 {!selectedTemplate ? (
@@ -377,12 +360,11 @@ export function MobileRichMenuSimulator() {
                 <ul>
                   <li>檔案格式：JPG、JPEG、PNG</li>
                   <li>檔案容量：10MB以下</li>
-                  <li>圖片尺寸（大）：2500px × 1686px</li>
-                  <li>圖片尺寸（小）：2500px × 843px</li>
+                  <li>圖片尺寸（大）：2500 × 1686、1200 × 810、800 × 540 px</li>
+                  <li>圖片尺寸（小）：2500 × 843、1200 × 405、800 × 270 px</li>
                 </ul>
-                <button className="mobile-preset-btn" onClick={() => setOfficialPresetOpen(true)}>選擇預設圖片</button>
-                <button className="mobile-linetech-btn" onClick={openPresetLibrary}>Linetech 原創範本庫</button>
-                <div className="official-mobile-note">「選擇預設圖片」為 LINE 官方流程；下方 Linetech 圖庫為教學擴充，兩者分開呈現。</div>
+                <button className="mobile-preset-btn" onClick={openPresetLibrary}>選擇預設圖片</button>
+                <div className="official-mobile-note">教學版此入口提供 Linetech 原創範本（非 LINE 官方內建圖庫），可直接編輯並套用。</div>
                 {imageName && <div className="mobile-file-status">已選擇：{imageName}</div>}
                 {menuLabels.length > 0 && <div className="linetech-label-summary">選單文字：{menuLabels.join('・')}</div>}
               </div>
@@ -411,25 +393,6 @@ export function MobileRichMenuSimulator() {
                 <div className="mobile-picker-actions">
                   <button className="select" disabled={!pendingTemplateId} onClick={applyTemplate}>選擇</button>
                   <button className="cancel" onClick={() => setPickerOpen(false)}>取消</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {officialPresetOpen && (
-            <div className="mobile-picker-overlay official-preset-overlay">
-              <div className="official-preset-sheet">
-                <div className="mobile-picker-head"><strong>選擇預設圖片</strong><button onClick={() => setOfficialPresetOpen(false)}><X size={25} /></button></div>
-                <div className="official-preset-note">LINE 官方預設圖片功能・教學模擬畫面</div>
-                <div className="official-preset-card">
-                  <div className="official-preset-thumb">
-                    <span>預設圖片 A</span><span>預設圖片 B</span><span>預設圖片 C</span>
-                  </div>
-                  <p>選擇後會自動帶入對應版型，下一步再設定各區塊動作與顯示期間。</p>
-                </div>
-                <div className="mobile-picker-actions">
-                  <button className="select" onClick={applyOfficialPreset}>選擇</button>
-                  <button className="cancel" onClick={() => setOfficialPresetOpen(false)}>取消</button>
                 </div>
               </div>
             </div>
@@ -482,7 +445,16 @@ export function MobileRichMenuSimulator() {
 
         <aside className="mobile-teaching-panel">
           <span className="teacher-only">教學輔助區・非 LINE 官方畫面</span>
-          {page==='feature'&&activeFeature==='addfriend'?<FriendGrowthPractice tool={friendTool} onSelect={setFriendTool} onCoupon={()=>openFeature('coupon')}/>:page==='feature'&&activeFeature==='autoreply'?<><h2>自動回應訊息｜操作與測試</h2><p>先建立標題、選擇回應類型並登錄關鍵字，點「下一步」設定訊息，啟用後在右側測試。</p><div className="mobile-teaching-note"><strong>目前回應設定</strong><span>全域自動回應：{training.autoEnabled?'開啟':'關閉'}・已啟用規則：{training.rules.filter(r=>r.enabled).length} 筆</span>{training.rules.filter(r=>r.enabled).map(r=><span key={r.id}>{r.title||r.keyword||'自動回應'}：{(r.keywords??(r.keyword?[r.keyword]:[])).join('、')||'未登錄關鍵字'}</span>)}</div><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-autoreply/" target="_blank" rel="noreferrer">LINE 官方操作手冊</a><details className="auto-reference"><summary>畫面依據與驗證範圍</summary><p>列表及建立頁依 2026.11.25 台灣 iOS 實機截圖重製。Default 初始停用，未見實際回覆內容。指定日期或時間、後續訊息設定頁及右上狀態選單仍待台灣實機核對。</p><a href="https://www.lycbiz.com/jp/manual/OfficialAccountManager/Auto-response-messages/" target="_blank" rel="noreferrer">日本官方手冊（未核對頁面參考）</a><a href="https://tw.linebiz.com/skill/courses/oafeature/line-oa-auto-reply/" target="_blank" rel="noreferrer">台灣官方課程</a></details></>:page==='feature'&&activeFeature==='welcome'?<><h2>加入好友的歡迎訊息｜測試</h2><p>儲存歡迎訊息後，點「模擬加入好友」確認顧客端收到的內容。</p></>:page==='intro'||page==='step1'||page==='step2'||page==='step3'?<><h2>圖文選單｜操作與測試</h2><p>選擇版型、設定熱區動作及使用期間，並於顧客手機測試點擊結果。</p></>:<><h2>教學控制台</h2>
+          {page==='feature'&&activeFeature==='addfriend'?<FriendGrowthPractice tool={friendTool} onSelect={setFriendTool} onCoupon={()=>openFeature('coupon')}/>:page==='feature'&&activeFeature==='autoreply'?<><h2>自動回應訊息｜操作與測試</h2><p>先建立標題、選擇回應類型並登錄關鍵字，點「下一步」設定訊息，啟用後在右側測試。</p><div className="mobile-teaching-note"><strong>目前回應設定</strong><span>全域自動回應：{training.autoEnabled?'開啟':'關閉'}・已啟用規則：{training.rules.filter(r=>r.enabled).length} 筆</span>{training.rules.filter(r=>r.enabled).map(r=><span key={r.id}>{r.title||r.keyword||'自動回應'}：{(r.keywords??(r.keyword?[r.keyword]:[])).join('、')||'未登錄關鍵字'}</span>)}</div><a href="https://tw.linebiz.com/manual/line-official-account/oa-manager-autoreply/" target="_blank" rel="noreferrer">LINE 官方操作手冊</a><details className="auto-reference"><summary>畫面依據與驗證範圍</summary><p>列表及建立頁依 2026.11.25 台灣 iOS 實機截圖重製。Default 初始停用，未見實際回覆內容。指定日期或時間、後續訊息設定頁及右上狀態選單仍待台灣實機核對。</p><a href="https://www.lycbiz.com/jp/manual/OfficialAccountManager/Auto-response-messages/" target="_blank" rel="noreferrer">日本官方手冊（未核對頁面參考）</a><a href="https://tw.linebiz.com/skill/courses/oafeature/line-oa-auto-reply/" target="_blank" rel="noreferrer">台灣官方課程</a></details></>:page==='feature'&&activeFeature==='welcome'?<><h2>加入好友的歡迎訊息｜測試</h2><p>儲存歡迎訊息後，點「模擬加入好友」確認顧客端收到的內容。</p></>:page==='intro'||page==='step1'||page==='step2'||page==='step3'?<><h2>手機版圖文選單｜操作與測試</h2><p>沿用原本已確認的版型、背景圖及範本操作。後續設定頁為教學模擬，仍待實機核對。</p>
+            <ol className="menu-training-steps">
+              <li className="done"><b>1</b><div><strong>主頁</strong><span>點選「圖文選單」</span></div></li>
+              <li className={page==='intro'?'active':'done'}><b>2</b><div><strong>圖文選單介紹</strong><span>點「建立」</span></div></li>
+              <li className={selectedTemplate?'done':page==='step1'?'active':''}><b>3</b><div><strong>選擇版型</strong><span>小 5 種／大 7 種；亦可套用原創範本</span></div></li>
+              <li className={imageDataUrl?'done':page==='step1'&&selectedTemplate?'active':''}><b>4</b><div><strong>建立圖片</strong><span>上傳圖片或編輯原創範本</span></div></li>
+              <li className={page==='step2'?'active':page==='step3'?'done':''}><b>5</b><div><strong>設定熱區動作</strong><span>內容設定（2/3）</span></div></li>
+              <li className={done?'done':page==='step3'?'active':''}><b>6</b><div><strong>完成基本設定</strong><span>內容設定（3/3）與本機儲存</span></div></li>
+            </ol>
+            {page==='step1'&&<div className="mobile-teaching-note"><strong>Linetech 原創範本・教學擴充</strong><span>可修改品牌、三種配色及每格文字，套用時同步帶入對應版型。</span><button className="menu-library-shortcut" onClick={openPresetLibrary}>Linetech 原創範本庫</button></div>}</>:<><h2>教學控制台</h2>
           <p>首頁與群發入口依最新實機截圖；圖文選單後續步驟依官方規則建立，畫面仍待新版 App 核對。</p></>}
           {menuError&&<p role="alert" className="menu-practice-error">{menuError}</p>}
           {!(page==='feature'&&activeFeature==='addfriend')&&<CustomerPractice template={page==='feature'&&['autoreply','welcome'].includes(activeFeature)?null:selectedTemplate} image={imageDataUrl} config={menuConfig} context={page==='feature'&&activeFeature==='autoreply'?'reply':page==='feature'&&activeFeature==='welcome'?'welcome':page==='intro'||page==='step1'||page==='step2'||page==='step3'?'menu':'general'}/>} 
