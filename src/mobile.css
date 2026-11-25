@@ -662,3 +662,18 @@ button.official-list-button{cursor:pointer}
 .friend-device .friend-growth-scroll{flex:1 1 0%;height:0;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;scrollbar-width:thin;overscroll-behavior-y:contain;touch-action:pan-y;padding-bottom:28px;box-sizing:border-box}
 .friend-device .friend-growth-scroll:focus-visible{outline:2px solid #06c755;outline-offset:-2px}
 .friend-device .friend-growth-scroll>.friend-setting-section{padding-bottom:12px}
+
+/* Rich-menu regression repair: constrain only this teaching module. */
+.oa-mobile-device.menu-device{height:min(812px,calc(100dvh - 120px));min-height:360px;max-width:100%}
+.menu-device .menu-intro-screen{display:flex;flex-direction:column;overflow:hidden}
+.menu-device .menu-intro-screen>.oa-mobile-header{flex:0 0 54px}
+.menu-device .mobile-intro-content{flex:1;min-height:0;overflow:auto;padding-bottom:20px}
+.menu-device .mobile-fixed-action{position:relative;flex:0 0 auto}
+.menu-device .menu-step1-screen{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;overscroll-behavior-y:contain}
+.menu-device .menu-step1-screen .mobile-next-area{padding-bottom:24px}
+.menu-device .mobile-selected-preview img{object-fit:fill}
+.menu-device .mobile-picker-sheet{padding-bottom:0;overflow:auto;scrollbar-width:thin}
+.menu-device .mobile-template-grid{padding-bottom:20px}
+.menu-device .mobile-picker-actions{position:sticky;bottom:0;z-index:5;border-top:1px solid #eee}
+.menu-library-shortcut{align-self:flex-start;border:1px solid #06c755;color:#168d42;background:white;border-radius:5px;font-size:13px;font-weight:700;padding:9px 13px;margin-top:7px}
+.menu-training-steps{margin-bottom:14px!important}
