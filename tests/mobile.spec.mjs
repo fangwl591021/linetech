@@ -247,3 +247,56 @@ test('RC7.1 actual wheel scroll reaches the final share-image setting with fixed
   await header.locator('button').click();
   await expect.poll(()=>scroll.evaluate(e=>Math.abs(e.scrollHeight-e.clientHeight-e.scrollTop))).toBeLessThan(3);
 });
+
+test('rich menu original preset entry and all twelve layouts remain usable on shorter viewport',async({page})=>{
+  await page.setViewportSize({width:1440,height:780});
+  await page.locator('.mobile-home-grid > button').nth(9).click();
+  await page.locator('.mobile-fixed-action button').click();
+  await expect(page.locator('.menu-training-steps')).toContainText('選擇版型');
+  await page.getByRole('button',{name:'選擇版型',exact:true}).click();
+  await expect(page.locator('.mobile-template-thumb')).toHaveCount(5);
+  await page.locator('.mobile-picker-tabs').getByRole('button',{name:'大',exact:true}).click();
+  await expect(page.locator('.mobile-template-thumb')).toHaveCount(7);
+  await page.locator('.mobile-template-thumb').last().click();
+  await page.locator('.mobile-picker-actions .select').click();
+  await expect(page.locator('.mobile-area-label')).toHaveCount(1);
+  await page.getByRole('button',{name:'選擇預設圖片',exact:true}).click();
+  await expect(page.locator('.linetech-preset-card')).toHaveCount(12);
+  await page.locator('.linetech-preset-card').last().click();
+  await page.getByRole('button',{name:'編輯並套用',exact:true}).click();
+  await page.getByPlaceholder('輸入品牌名稱').fill('回歸測試');
+  await page.getByRole('button',{name:'套用到圖文選單',exact:true}).click();
+  await expect(page.locator('.mobile-file-status')).toContainText('回歸測試');
+  await expect(page.locator('.mobile-selected-preview img')).toBeVisible();
+  await page.getByRole('button',{name:'選擇版型',exact:true}).click();
+  await expect(page.locator('.mobile-template-thumb.selected')).toHaveCount(1);
+  await page.locator('.mobile-picker-actions .select').click();
+  await expect(page.locator('.mobile-file-status')).toContainText('回歸測試');
+  await expect(page.locator('.mobile-next-area button')).toBeEnabled();
+});
+test('rich menu accepts official alternative dimensions and preserves the image on same-layout selection',async({page})=>{
+  await page.locator('.mobile-home-grid > button').nth(9).click();
+  await page.locator('.mobile-fixed-action button').click();
+  await page.getByRole('button',{name:'選擇版型',exact:true}).click();
+  await page.locator('.mobile-template-thumb').first().click();
+  await page.locator('.mobile-picker-actions .select').click();
+  const makePng=async(w,h)=>Buffer.from((await page.evaluate(({w,h})=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#06c755';x.fillRect(0,0,w,h);return c.toDataURL('image/png').split(',')[1];},{w,h})),'base64');
+  for(const [w,h] of [[1200,405],[800,270],[2500,843]]){
+    await page.locator('.mobile-step1-controls input[type=file]').setInputFiles({name:w+'.png',mimeType:'image/png',buffer:await makePng(w,h)});
+    await expect(page.locator('.mobile-file-status')).toContainText(w+'.png');
+    await expect(page.locator('.mobile-next-area button')).toBeEnabled();
+  }
+  await page.getByRole('button',{name:'選擇版型',exact:true}).click();
+  await page.locator('.mobile-picker-actions .select').click();
+  await expect(page.locator('.mobile-file-status')).toContainText('2500.png');
+  await page.getByRole('button',{name:'選擇版型',exact:true}).click();
+  await page.locator('.mobile-picker-tabs').getByRole('button',{name:'大',exact:true}).click();
+  await page.locator('.mobile-template-thumb').first().click();
+  await page.locator('.mobile-picker-actions .select').click();
+  for(const [w,h] of [[1200,810],[800,540],[2500,1686]]){
+    await page.locator('.mobile-step1-controls input[type=file]').setInputFiles({name:w+'-large.png',mimeType:'image/png',buffer:await makePng(w,h)});
+    await expect(page.locator('.mobile-file-status')).toContainText(w+'-large.png');
+  }
+  await expect(page.locator('.mobile-area-label')).toHaveCount(6);
+  await expect(page.locator('.mobile-next-area button')).toBeEnabled();
+});
