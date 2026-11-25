@@ -17,3 +17,11 @@ jobs:
       - run: npm install --no-save @playwright/test
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
+
+      - name: Preserve rich menu visual review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rich-menu-visual-review
+          path: test-results/**/taiwan-rich-menu-*.png
+          if-no-files-found: ignore
